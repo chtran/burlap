@@ -61,7 +61,8 @@ public class GridWorldDomain implements DomainGenerator {
 	protected int										height;
 	protected int [][]									map;
 	protected double[][]								transitionDynamics;
-	
+	boolean [][]										northWalls;
+	boolean [][]										eastWalls;
 	
 	/**
 	 * Constructs an empty map with deterministic transitions
@@ -142,9 +143,13 @@ public class GridWorldDomain implements DomainGenerator {
 	 */
 	public void makeEmptyMap(){
 		this.map = new int[this.width][this.height];
+		this.northWalls = new boolean[this.width][this.height];
+		this.eastWalls = new boolean[this.width][this.height];
 		for(int i = 0; i < this.width; i++){
 			for(int j = 0; j < this.height; j++){
 				this.map[i][j] = 0;
+				this.northWalls[i][j] = false;
+				this.eastWalls[i][j] = false;
 			}
 		}
 	}
@@ -159,6 +164,23 @@ public class GridWorldDomain implements DomainGenerator {
 		this.map = map.clone();
 	}
 	
+	/**
+	 * Set the north walls relative to the coordinate.  Movement in the north/south 
+	 * direction is not allowed between (x,y) and (x,y+1)
+	 * @param northWalls the first index is the x index, the second the y.  true if a wall exists
+	 */
+	public void setNorthWalls(boolean [][] northWalls) {
+		this.northWalls = northWalls;
+	}
+	
+	/**
+	 * Set the east wall relative to the coordinate.  Movement in the east/west 
+	 * direction is not allowed between (x,y) and (x+1,y)
+	 * @param eastWalls the first index is the x index, the second the y.  true if a wall exists
+	 */
+	public void setEastWalls(boolean [][] eastWalls) {
+		this.eastWalls = eastWalls;
+	}
 	
 	/**
 	 * Will set the map of the world to the classic Four Rooms map used the original options work (Sutton, R.S. and Precup, D. and Singh, S., 1999).
@@ -216,6 +238,22 @@ public class GridWorldDomain implements DomainGenerator {
 	 */
 	public int [][] getMap(){
 		return this.map.clone();
+	}
+	
+	/**
+	 * Returns the northWalls being used for the domain
+	 * @return the northWalls being used in the domain
+	 */
+	public boolean [][] getNorthWalls() {
+		return this.northWalls.clone();
+	}
+	
+	/**
+	 * Returns the eastWalls being used for the domain
+	 * @return the eastWalls being used in the domain
+	 */
+	public boolean [][] getEastWalls() {
+		return this.eastWalls.clone();
 	}
 	
 
@@ -361,7 +399,8 @@ public class GridWorldDomain implements DomainGenerator {
 		}
 		else if(expMode == 1){
 			
-			Visualizer v = GridWorldVisualizer.getVisualizer(d, gwdg.getMap());
+			Visualizer v = GridWorldVisualizer.getVisualizer(d, gwdg.getMap(),
+								gwdg.getNorthWalls(), gwdg.getEastWalls());
 			VisualExplorer exp = new VisualExplorer(d, v, s);
 			
 			//use w-s-a-d-x
@@ -395,8 +434,24 @@ public class GridWorldDomain implements DomainGenerator {
 		int nx = ax+xd;
 		int ny = ay+yd;
 		
+		// check for directional walls
+		// north-south barrier, in the ax direction
+		boolean dirWall = false;
+		for (int y = Math.min(ay,ny); y < Math.max(ay,ny) && !dirWall; y++) {
+			if (this.northWalls[ax][y]) {
+				dirWall = true;
+			}
+		}
+		// east-west barrier, in the ay direction
+		for (int x = Math.min(ax,nx); x < Math.max(ax,nx) && !dirWall; x++) {
+			if (this.northWalls[x][ay]) {
+				dirWall = true;
+			}
+		}
+		
 		//hit wall, so do not change position
-		if(nx < 0 || nx >= this.width || ny < 0 || ny >= this.height || this.map[nx][ny] == 1){
+		if(nx < 0 || nx >= this.width || ny < 0 || ny >= this.height ||
+		   this.map[nx][ny] == 1  ||  dirWall){
 			nx = ax;
 			ny = ay;
 		}
