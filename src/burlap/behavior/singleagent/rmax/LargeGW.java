@@ -1,12 +1,19 @@
 package burlap.behavior.singleagent.rmax;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 
 import burlap.behavior.singleagent.EpisodeAnalysis;
 import burlap.behavior.singleagent.Policy;
+import burlap.behavior.singleagent.learning.tdmethods.QLearning;
+import burlap.behavior.statehashing.DiscreteStateHashFactory;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldVisualizer;
+import burlap.oomdp.auxiliary.StateParser;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.ObjectInstance;
 import burlap.oomdp.core.State;
@@ -34,6 +41,9 @@ public class LargeGW {
 	double stepCost = -0.001;
 	boolean [][] northWalls;
 	boolean [][] eastWalls;
+	State 						initialState;
+	DiscreteStateHashFactory	hashingFactory;
+	StateParser sp;
 	
 	public LargeGW() {
 		gwd = new GridWorldDomain(15,15); // Column, Row (x,y)
@@ -219,6 +229,11 @@ public class LargeGW {
 		
 		tf = new LocTF(goalPos, pitPos);
 		rf = new LocRF(goalPos, 1.0, pitPos, -1.0);
+		initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
+
+		hashingFactory = new DiscreteStateHashFactory();
+		hashingFactory.setAttributesForClass(GridWorldDomain.CLASSAGENT,
+				domain.getObjectClass(GridWorldDomain.CLASSAGENT).attributeList);
 	}
 
 	class Position {
@@ -334,7 +349,34 @@ public class LargeGW {
 	}
 	
 	public void evaluatePolicy() {
-		evaluateGoNorthPolicy();
+		//evaluateGoNorthPolicy();
+		String outputPath = "/gpfs/main/home/oyakawa/Courses/2013-3-CS_2951F/Final_Project/output";
+		if(!outputPath.endsWith("/")) {
+			outputPath = outputPath + "/";
+		}
+		
+
+		
+		QLearning qlplanner = new QLearning(domain, rf, tf,
+				discountFactor, hashingFactory, 0., .02, 10000);
+		qlplanner.setMaximumEpisodesForPlanning(1500);
+		qlplanner.setNumEpisodesToStore(1500);
+		qlplanner.planFromState(initialState);
+		List<EpisodeAnalysis> episodes = qlplanner.getAllStoredLearningEpisodes();
+		System.out.println("length "+episodes.size());
+		int i=1;
+		for (EpisodeAnalysis ea: episodes) {
+			System.out.println(i);
+			i++;
+			double pReturn = ea.getDiscountedReturn(discountFactor);
+			try {
+				PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outputPath+"qlresults.txt", true)));
+			    out.println(String.valueOf(pReturn));
+			    out.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public void evaluateGoNorthPolicy() {
@@ -367,9 +409,9 @@ public class LargeGW {
 	 */
 	public static void main(String[] args) {
 		LargeGW myWorld = new LargeGW();
-		myWorld.visualExplorer();
+		//myWorld.visualExplorer();
 		//for (int ii = 0; ii < 20; ii++)
-		//	myWorld.evaluatePolicy();
+			myWorld.evaluatePolicy();
 	}
 
 }

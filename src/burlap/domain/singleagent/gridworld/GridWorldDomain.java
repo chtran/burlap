@@ -64,6 +64,9 @@ public class GridWorldDomain implements DomainGenerator {
 	boolean [][]										northWalls;
 	boolean [][]										eastWalls;
 	
+	//Rmax
+	int											initialX;
+	int											initialY;
 	/**
 	 * Constructs an empty map with deterministic transitions
 	 * @param width width of the map
@@ -256,7 +259,11 @@ public class GridWorldDomain implements DomainGenerator {
 		return this.eastWalls.clone();
 	}
 	
-
+	public void setInitialPosition(int x, int y) {
+		this.initialX = x;
+		this.initialY = y;
+	}
+	
 	@Override
 	public Domain generateDomain() {
 		
@@ -282,7 +289,8 @@ public class GridWorldDomain implements DomainGenerator {
 		Action south = new MovementAction(ACTIONSOUTH, DOMAIN, this.transitionDynamics[1]);
 		Action east = new MovementAction(ACTIONEAST, DOMAIN, this.transitionDynamics[2]);
 		Action west = new MovementAction(ACTIONWEST, DOMAIN, this.transitionDynamics[3]);
-		
+		Action reset = new ResetAction("RESET", DOMAIN);
+
 		
 		PropositionalFunction atLocationPF = new AtLocationPF(PFATLOCATION, DOMAIN, new String[]{CLASSAGENT, CLASSLOCATION});
 		
@@ -494,7 +502,24 @@ public class GridWorldDomain implements DomainGenerator {
 		return result;
 	}
 	
-	
+	public class ResetAction extends Action {
+		
+		public ResetAction(String name, Domain domain){
+			super(name, domain, "");
+		}
+		
+		@Override
+		protected State performActionHelper(State st, String[] params) {
+			ObjectInstance agent = st.getObjectsOfTrueClass(CLASSAGENT).get(0);
+			agent.setValue(ATTX, GridWorldDomain.this.initialX);
+			agent.setValue(ATTY, GridWorldDomain.this.initialX);
+			
+			return st;
+		}
+		
+		
+		
+	}
 	
 	
 	public class MovementAction extends Action{
