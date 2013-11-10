@@ -18,13 +18,13 @@ import burlap.oomdp.visualizer.Visualizer;
 
 
 /*
- * Implementation of the small grid world described in 
+ * Implementation of the large grid world described in 
  * Potential-based Shaping in Model-based Reinforcement Learning
  * Asmuth, Littman, Zinkov
  * Proceedings of the Twenty-Third AAAI Conference on Artificial Intelligence
  * 2008
  */
-public class SmallGW {
+public class LargeGW {
 
 	Domain domain;
 	GridWorldDomain gwd;
@@ -34,16 +34,16 @@ public class SmallGW {
 	double stepCost = -0.001;
 	boolean [][] northWalls;
 	boolean [][] eastWalls;
-
-	public SmallGW() {
-		gwd = new GridWorldDomain(4,6); // Column, Row (x,y)
+	
+	public LargeGW() {
+		gwd = new GridWorldDomain(15,15); // Column, Row (x,y)
 		for (int r = 1; r <= 4; r++) {
 			//gwd.setObstacleInCell(0, r);
 			//gwd.setObstacleInCell(2, r);
 			//gwd.horizontalWall(0, 3, 0);
 		}
 		
-		northWalls = new boolean [4][6];
+		northWalls = new boolean [15][15];
 		for (boolean [] row : northWalls)
 			Arrays.fill(row, false);
 		
@@ -51,7 +51,7 @@ public class SmallGW {
 		
 		gwd.setNorthWalls(northWalls);
 		
-		eastWalls = new boolean [4][6];
+		eastWalls = new boolean [15][15];
 		for (boolean [] row : eastWalls)
 			Arrays.fill(row, false);
 		
@@ -238,7 +238,7 @@ public class SmallGW {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		SmallGW myWorld = new SmallGW();
+		LargeGW myWorld = new LargeGW();
 		myWorld.visualExplorer();
 		//for (int ii = 0; ii < 20; ii++)
 		//	myWorld.evaluatePolicy();
