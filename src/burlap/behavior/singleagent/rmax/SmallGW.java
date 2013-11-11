@@ -38,22 +38,24 @@ import burlap.oomdp.visualizer.Visualizer;
  */
 public class SmallGW {
 
-	Domain domain;
-	GridWorldDomain gwd;
-	LocTF tf;
-	LocRF rf;
-	double discountFactor = 1.0;
-	double stepCost = -0.1;
-	boolean [][] northWalls;
-	boolean [][] eastWalls;
-	Position [] pitPos;
-	Position [] goalPos;
-	Position initialAgentPos = new Position(0, 5);
-	State 						initialState;
+	Domain						domain;
+	GridWorldDomain				gwd;
+	LocTF						tf;
+	LocRF						rf;
+	double						discountFactor = 1.0;
+	double						stepCost = -0.1;
+	boolean [][]				northWalls;
+	boolean [][]				eastWalls;
+	Position []					pitPos;
+	Position []					goalPos;
+	Position					initialAgentPos = new Position(0, 5);
+	State						initialState;
 	DiscreteStateHashFactory	hashingFactory;
-	StateParser sp;
-	int numberOfEpisodes = 2000;
-	int maxEpisodesize = 10000;
+	StateParser					sp;
+	int 						numberOfEpisodes = 2000;
+	int 						maxEpisodeSize = 10000;
+	// Record data to outputPath
+	String outputPath = "/gpfs/main/home/oyakawa/Courses/2013-3-CS_2951F/Final_Project/output";
 	
 	public SmallGW() {
 		gwd = new GridWorldDomain(4,6); // Column, Row (x,y)
@@ -70,23 +72,17 @@ public class SmallGW {
 		for (boolean [] row : eastWalls)
 			Arrays.fill(row, false);
 		
-		//eastWalls[0][4] = true;
-		
 		gwd.setEastWalls(eastWalls);
 		
 		double [][] transitionDynamics = new double [][] {
-			{0.8, 0., 0.1, 0.1, 0.},
-			{0., 0.8, 0.1, 0.1, 0.},
+			{0.8, 0., 0.1, 0.1, 0.},	// The first 4 entries
+			{0., 0.8, 0.1, 0.1, 0.},	// indicate cardinal directions
 			{0.1, 0.1, 0.8, 0., 0.},
 			{0.1, 0.1, 0., 0.8, 0.},
-			{0., 0., 0., 0., 0.}
+			{0., 0., 0., 0., 0.}		// Reset - return agent to starting position
+										// Keep the entries at 0.
 		};
-//		double [][] transitionDynamics = new double [][] {
-//				{1., 0., 0., 0.},
-//				{0., 1., 0., 0.},
-//				{0., 0., 1., 0.},
-//				{0., 0., 0., 1.}
-//			};
+
 		gwd.setTransitionDynamics(transitionDynamics);
 		domain = gwd.generateDomain();
 		sp = new GridWorldStateParser(domain);
@@ -117,6 +113,10 @@ public class SmallGW {
 		hashingFactory = new DiscreteStateHashFactory();
 		hashingFactory.setAttributesForClass(GridWorldDomain.CLASSAGENT,
 				domain.getObjectClass(GridWorldDomain.CLASSAGENT).attributeList);
+		
+		if(!outputPath.endsWith("/")) {
+			outputPath = outputPath + "/";
+		}
 	}
 
 	class Position {
@@ -233,64 +233,7 @@ public class SmallGW {
 	
 	public void evaluatePolicy() {
 		//evaluateGoNorthPolicy();
-		String outputPath = "/gpfs/main/home/oyakawa/Courses/2013-3-CS_2951F/Final_Project/output";
-		if(!outputPath.endsWith("/")) {
-			outputPath = outputPath + "/";
-		}
-		
-
-		
-		QLearning qlplanner = new QLearning(domain, rf, tf,
-				discountFactor, hashingFactory, 0., .02, maxEpisodesize);
-		qlplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
-		qlplanner.setNumEpisodesToStore(numberOfEpisodes);
-		qlplanner.planFromState(initialState);
-		List<EpisodeAnalysis> episodes = qlplanner.getAllStoredLearningEpisodes();
-		System.out.println("length "+episodes.size());
-		int i=1;
-		for (EpisodeAnalysis ea: episodes) {
-			//System.out.println(i);
-			i++;
-			double pReturn = ea.getDiscountedReturn(discountFactor);
-			try {
-				PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outputPath+"qlresults.txt", true)));
-			    out.println(String.valueOf(pReturn));
-			    out.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		//Policy p = new GreedyQPolicy((QComputablePlanner)qlplanner);
-		//qlplanner.setLearningPolicy(p);
-
-		
-//		for (int i=0; i<200;i++) {
-//			initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
-//			GridWorldDomain.setAgent(initialState, 0, 5);
-//			GridWorldDomain.setLocation(initialState, 0, this.goalPos[0].x, this.goalPos[0].y);
-//			//qlplanner.planFromState(initialState);
-//
-//			EpisodeAnalysis ea = p.evaluateBehavior(initialState, rf, tf, 1000);
-//			//ea.writeToFile(outputPath + "QLearningResult", sp);
-//			
-//			double pReturn = ea.getDiscountedReturn(discountFactor);
-//			System.out.println(pReturn);
-//	
-//			try {
-//				PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outputPath+"qlresults.txt", true)));
-//			    out.println(String.valueOf(pReturn));
-//			    out.close();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//			//qlplanner = new QLearning(domain, rf, tf,
-//			//		discountFactor, hashingFactory, 0., .02, p, 10000);
-//
-//			//p = new GreedyQPolicy((QComputablePlanner)qlplanner);
-//
-//		}
-//
-//		//visualizeEpisode(outputPath);
+		evaluateQLearningPolicy();
 	}
 	
 	public void visualizeEpisode(String outputPath){
@@ -321,6 +264,31 @@ public class SmallGW {
 		EpisodeAnalysis ea = p.evaluateBehavior(s, rf, tf, 1000);
 		double pReturn = ea.getDiscountedReturn(discountFactor);
 		System.out.println(pReturn);
+	}
+	
+	public void evaluateQLearningPolicy() {
+		QLearning qlplanner = new QLearning(domain, rf, tf,
+				discountFactor, hashingFactory, 0., .02, maxEpisodeSize);
+		qlplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
+		qlplanner.setNumEpisodesToStore(numberOfEpisodes);
+		qlplanner.planFromState(initialState);
+		
+		outputEpisodeData(qlplanner.getAllStoredLearningEpisodes(),
+						  "ql_results.txt");
+	}
+	
+	public void outputEpisodeData(List<EpisodeAnalysis> episodes, String filename) {
+		try {
+			PrintWriter pw = new PrintWriter(
+					new BufferedWriter(
+							new FileWriter(outputPath + filename, true)));
+			for (EpisodeAnalysis ea: episodes) {
+				pw.println(String.valueOf(ea.getDiscountedReturn(discountFactor)));
+			}
+			pw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
