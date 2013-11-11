@@ -48,9 +48,12 @@ public class SmallGW {
 	boolean [][] eastWalls;
 	Position [] pitPos;
 	Position [] goalPos;
+	Position initialAgentPos = new Position(0, 5);
 	State 						initialState;
 	DiscreteStateHashFactory	hashingFactory;
 	StateParser sp;
+	int numberOfEpisodes = 2000;
+	int maxEpisodesize = 10000;
 	
 	public SmallGW() {
 		gwd = new GridWorldDomain(4,6); // Column, Row (x,y)
@@ -76,7 +79,7 @@ public class SmallGW {
 			{0., 0.8, 0.1, 0.1, 0.},
 			{0.1, 0.1, 0.8, 0., 0.},
 			{0.1, 0.1, 0., 0.8, 0.},
-			{0., 0., 0., 0., 1.}
+			{0., 0., 0., 0., 0.}
 		};
 //		double [][] transitionDynamics = new double [][] {
 //				{1., 0., 0., 0.},
@@ -107,8 +110,8 @@ public class SmallGW {
 		rf = new LocRF(goalPos, 5.0, pitPos, -1.0);
 		
 		initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
-		gwd.setInitialPosition(0,5);
-		GridWorldDomain.setAgent(initialState, 0, 5);
+		gwd.setInitialPosition(initialAgentPos.x, initialAgentPos.y);
+		GridWorldDomain.setAgent(initialState, initialAgentPos.x, initialAgentPos.y);
 		GridWorldDomain.setLocation(initialState, 0, goalPos[0].x, goalPos[0].y);
 		
 		hashingFactory = new DiscreteStateHashFactory();
@@ -238,15 +241,15 @@ public class SmallGW {
 
 		
 		QLearning qlplanner = new QLearning(domain, rf, tf,
-				discountFactor, hashingFactory, 0., .02, 10000);
-		qlplanner.setMaximumEpisodesForPlanning(2000);
-		qlplanner.setNumEpisodesToStore(2000);
+				discountFactor, hashingFactory, 0., .02, maxEpisodesize);
+		qlplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
+		qlplanner.setNumEpisodesToStore(numberOfEpisodes);
 		qlplanner.planFromState(initialState);
 		List<EpisodeAnalysis> episodes = qlplanner.getAllStoredLearningEpisodes();
 		System.out.println("length "+episodes.size());
 		int i=1;
 		for (EpisodeAnalysis ea: episodes) {
-			System.out.println(i);
+			//System.out.println(i);
 			i++;
 			double pReturn = ea.getDiscountedReturn(discountFactor);
 			try {

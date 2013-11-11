@@ -65,8 +65,8 @@ public class GridWorldDomain implements DomainGenerator {
 	boolean [][]										eastWalls;
 	
 	//Rmax
-	int											initialX;
-	int											initialY;
+	int													initialX;
+	int													initialY;
 	/**
 	 * Constructs an empty map with deterministic transitions
 	 * @param width width of the map
@@ -494,7 +494,13 @@ public class GridWorldDomain implements DomainGenerator {
 			
 		case 3:
 			result = new int[]{-1,0};
+			break;
 
+		case 4:
+			result = new int[]{0,0};
+			System.out.println("???????????????????????????????");
+			break;
+			
 		default:
 			break;
 		}
@@ -512,8 +518,7 @@ public class GridWorldDomain implements DomainGenerator {
 		protected State performActionHelper(State st, String[] params) {
 			ObjectInstance agent = st.getObjectsOfTrueClass(CLASSAGENT).get(0);
 			agent.setValue(ATTX, GridWorldDomain.this.initialX);
-			agent.setValue(ATTY, GridWorldDomain.this.initialX);
-			
+			agent.setValue(ATTY, GridWorldDomain.this.initialY);
 			return st;
 		}
 		
