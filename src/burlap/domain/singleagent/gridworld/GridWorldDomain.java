@@ -65,9 +65,12 @@ public class GridWorldDomain implements DomainGenerator {
 	boolean [][]										eastWalls;
 	
 	//Rmax
-	int													initialX;
-	int													initialY;
-	Boolean												enablePositionReset;
+	// In "Implementation of the small grid world described in..." by Asmuth et al,
+	// the paper describes an action in which the agent moves back to its
+	// initial starting position.
+	int													initialX = 0;
+	int													initialY = 0;
+	Boolean												enablePositionReset = false;
 	/**
 	 * Constructs an empty map with deterministic transitions
 	 * @param width width of the map
