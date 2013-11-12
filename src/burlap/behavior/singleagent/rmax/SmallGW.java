@@ -54,12 +54,14 @@ public class SmallGW {
 	StateParser					sp;
 	int 						numberOfEpisodes = 2000;
 	int 						maxEpisodeSize = 10000;
+	Boolean						enablePositionReset = true;
 	// Record data to outputPath
+	Boolean						recordData = false;
 	String outputPath = "/gpfs/main/home/oyakawa/Courses/2013-3-CS_2951F/Final_Project/output";
 	
 	public SmallGW() {
 		gwd = new GridWorldDomain(4,6); // Column, Row (x,y)
-		
+				
 		northWalls = new boolean [4][6];
 		for (boolean [] row : northWalls)
 			Arrays.fill(row, false);
@@ -74,15 +76,14 @@ public class SmallGW {
 		
 		gwd.setEastWalls(eastWalls);
 		
+		gwd.setEnablePositionReset(enablePositionReset);
+		
 		double [][] transitionDynamics = new double [][] {
-			{0.8, 0., 0.1, 0.1, 0.},	// The first 4 entries
-			{0., 0.8, 0.1, 0.1, 0.},	// indicate cardinal directions
-			{0.1, 0.1, 0.8, 0., 0.},
-			{0.1, 0.1, 0., 0.8, 0.},
-			{0., 0., 0., 0., 0.}		// Reset - return agent to starting position
-										// Keep the entries at 0.
+			{0.8, 0., 0.1, 0.1},
+			{0., 0.8, 0.1, 0.1},
+			{0.1, 0.1, 0.8, 0.},
+			{0.1, 0.1, 0., 0.8},
 		};
-
 		gwd.setTransitionDynamics(transitionDynamics);
 		domain = gwd.generateDomain();
 		sp = new GridWorldStateParser(domain);
@@ -273,8 +274,10 @@ public class SmallGW {
 		qlplanner.setNumEpisodesToStore(numberOfEpisodes);
 		qlplanner.planFromState(initialState);
 		
-		outputEpisodeData(qlplanner.getAllStoredLearningEpisodes(),
-						  "ql_results.txt");
+		if (recordData) {
+			outputEpisodeData(qlplanner.getAllStoredLearningEpisodes(),
+							"ql_results.txt");
+		}
 	}
 	
 	public void outputEpisodeData(List<EpisodeAnalysis> episodes, String filename) {

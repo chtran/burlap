@@ -67,6 +67,7 @@ public class GridWorldDomain implements DomainGenerator {
 	//Rmax
 	int													initialX;
 	int													initialY;
+	Boolean												enablePositionReset;
 	/**
 	 * Constructs an empty map with deterministic transitions
 	 * @param width width of the map
@@ -127,6 +128,10 @@ public class GridWorldDomain implements DomainGenerator {
 				}
 			}
 		}
+	}
+	
+	public void setEnablePositionReset(Boolean enablePositionReset) {
+		this.enablePositionReset = enablePositionReset;
 	}
 	
 	/**
@@ -289,8 +294,9 @@ public class GridWorldDomain implements DomainGenerator {
 		Action south = new MovementAction(ACTIONSOUTH, DOMAIN, this.transitionDynamics[1]);
 		Action east = new MovementAction(ACTIONEAST, DOMAIN, this.transitionDynamics[2]);
 		Action west = new MovementAction(ACTIONWEST, DOMAIN, this.transitionDynamics[3]);
-		Action reset = new ResetAction("RESET", DOMAIN);
-
+		if (enablePositionReset) {
+			Action reset = new ResetAction("RESET", DOMAIN);
+		}
 		
 		PropositionalFunction atLocationPF = new AtLocationPF(PFATLOCATION, DOMAIN, new String[]{CLASSAGENT, CLASSLOCATION});
 		
