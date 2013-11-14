@@ -2,8 +2,10 @@ package burlap.domain.singleagent.gridworld;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
+import burlap.datastructures.Tuple;
 import burlap.debugtools.RandomFactory;
 import burlap.oomdp.auxiliary.DomainGenerator;
 import burlap.oomdp.core.Attribute;
@@ -71,6 +73,10 @@ public class GridWorldDomain implements DomainGenerator {
 	int													initialX = 0;
 	int													initialY = 0;
 	Boolean												enablePositionReset = false;
+	//Map<Tuple<Position,Position>, Integer>				distance;
+	int[][]												distance;
+	
+	
 	/**
 	 * Constructs an empty map with deterministic transitions
 	 * @param width width of the map
@@ -516,6 +522,87 @@ public class GridWorldDomain implements DomainGenerator {
 		return result;
 	}
 	
+	public void populateDistance() {
+		int num_states = this.width * this.height;
+		this.distance = new int[num_states][num_states];
+		for (int from_x = 0; from_x < this.width; from_x ++) {
+			for (int from_y = 0; from_y < this.height; from_y ++) {
+				this.distance[from_x*height+from_y] = getDistanceMatrix(from_x, from_y);
+			}
+		}
+		
+	}
+	
+	public int getDistance(Position from, Position to) {
+		return distance[from.x*height + from.y][to.x*height + to.y];
+	}
+	
+	private int[] getDistanceMatrix(int from_x, int from_y) {
+		int[] toReturn = new int[width * height];
+		//int[][] states = new int[width][height];
+		for (int i = 0; i < width*height; i++) {
+			toReturn[i] = Integer.MAX_VALUE;
+		}
+		toReturn[from_x*height + from_y] = 0;
+		List<Position> justExplored = new ArrayList<Position>();
+		justExplored.add(new Position(from_x, from_y));
+		while (!justExplored.isEmpty()) {
+			Position current = justExplored.remove(0);
+			int current_distance = toReturn[current.x*height + current.y];
+			String[] actions = new String[] {ACTIONNORTH, ACTIONSOUTH, ACTIONEAST, ACTIONWEST};
+			for (String action: actions) {
+				Position dest = getDest(current, action);
+				if (dest != null) {
+					if (toReturn[dest.x*height + dest.y]==Integer.MAX_VALUE) {
+						toReturn[dest.x*height + dest.y] = current_distance+1;
+						justExplored.add(dest);
+					}
+				}
+			}
+		}
+		return toReturn;
+	}
+
+	private Position getDest(Position from, String action) {
+		int from_x = from.x;
+		int from_y = from.y;
+		int to_x, to_y;
+		switch (action) {
+		case ACTIONNORTH:
+			to_x = from_x;
+			to_y = from_y + 1;
+			if (!inYRange(to_y)) return null;
+			if (this.northWalls[from_x][from_y]) return null;
+			return new Position(to_x,to_y);
+		case ACTIONSOUTH:
+			to_x = from_x;
+			to_y = from_y - 1;
+			if (!inYRange(to_y)) return null;
+			if (this.northWalls[to_x][to_y]) return null;
+			return new Position(to_x,to_y);
+		case ACTIONEAST:
+			to_x = from_x + 1;
+			to_y = from_y;
+			if (!inXRange(to_x)) return null;
+			if (this.eastWalls[from_x][from_y]) return null;
+			return new Position(to_x,to_y);
+		case ACTIONWEST:
+			to_x = from_x - 1;
+			to_y = from_y;
+			if (!inXRange(to_x)) return null;
+			if (this.eastWalls[to_x][to_y]) return null;	
+			return new Position(to_x,to_y);
+		}
+		return null;
+	}
+	
+	private boolean inXRange(int x) {
+		return (x>=0 && x<this.width);
+	}
+	
+	private boolean inYRange(int y) {
+		return (y>=0 && y<this.height);
+	}
 	public class ResetAction extends Action {
 		
 		public ResetAction(String name, Domain domain){
@@ -600,8 +687,7 @@ public class GridWorldDomain implements DomainGenerator {
 			return transitions;
 		}
 		
-		
-		
+
 	}
 	
 	

@@ -11,13 +11,11 @@ import burlap.behavior.singleagent.EpisodeAnalysis;
 import burlap.behavior.singleagent.EpisodeSequenceVisualizer;
 import burlap.behavior.singleagent.Policy;
 import burlap.behavior.singleagent.learning.tdmethods.QLearning;
-import burlap.behavior.singleagent.planning.OOMDPPlanner;
-import burlap.behavior.singleagent.planning.QComputablePlanner;
-import burlap.behavior.singleagent.planning.commonpolicies.GreedyQPolicy;
 import burlap.behavior.statehashing.DiscreteStateHashFactory;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldStateParser;
 import burlap.domain.singleagent.gridworld.GridWorldVisualizer;
+import burlap.domain.singleagent.gridworld.Position;
 import burlap.oomdp.auxiliary.StateParser;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.ObjectInstance;
@@ -85,6 +83,8 @@ public class SmallGW {
 			{0.1, 0.1, 0., 0.8},
 		};
 		gwd.setTransitionDynamics(transitionDynamics);
+		gwd.setInitialPosition(initialAgentPos.x, initialAgentPos.y);
+
 		domain = gwd.generateDomain();
 		sp = new GridWorldStateParser(domain);
 		
@@ -107,7 +107,6 @@ public class SmallGW {
 		rf = new LocRF(goalPos, 5.0, pitPos, -1.0);
 		
 		initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
-		gwd.setInitialPosition(initialAgentPos.x, initialAgentPos.y);
 		GridWorldDomain.setAgent(initialState, initialAgentPos.x, initialAgentPos.y);
 		GridWorldDomain.setLocation(initialState, 0, goalPos[0].x, goalPos[0].y);
 		
@@ -120,34 +119,7 @@ public class SmallGW {
 		}
 	}
 
-	class Position {
-		int x, y;
-		
-		public Position(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-		
-		@Override
-	    public boolean equals(Object obj) {
-			boolean bothAreEqual = false;
-			
-	        if (!(obj instanceof Position))
-	        	bothAreEqual = false;
-	        else if (this == obj)
-	        	bothAreEqual = true;
-	        else
-	        	bothAreEqual =    equal(x, ((Position) obj).x)
-	                           && equal(y, ((Position) obj).y);
-	        
-	        return bothAreEqual;
-	    }
-		
-	    private boolean equal(Object o1, Object o2) {
-	        return o1 == null ? o2 == null : (o1 == o2 || o1.equals(o2));
-	    }
-	}
-	
+
 	class LocTF implements TerminalFunction {
 		Position [] tPos;
 		

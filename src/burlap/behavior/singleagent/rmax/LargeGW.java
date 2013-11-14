@@ -13,6 +13,7 @@ import burlap.behavior.singleagent.learning.tdmethods.QLearning;
 import burlap.behavior.statehashing.DiscreteStateHashFactory;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldVisualizer;
+import burlap.domain.singleagent.gridworld.Position;
 import burlap.oomdp.auxiliary.StateParser;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.ObjectInstance;
@@ -236,34 +237,6 @@ public class LargeGW {
 				domain.getObjectClass(GridWorldDomain.CLASSAGENT).attributeList);
 	}
 
-	class Position {
-		int x, y;
-		
-		public Position(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-		
-		@Override
-	    public boolean equals(Object obj) {
-			boolean bothAreEqual = false;
-			
-	        if (!(obj instanceof Position))
-	        	bothAreEqual = false;
-	        else if (this == obj)
-	        	bothAreEqual = true;
-	        else
-	        	bothAreEqual =    equal(x, ((Position) obj).x)
-	                           && equal(y, ((Position) obj).y);
-	        
-	        return bothAreEqual;
-	    }
-		
-	    private boolean equal(Object o1, Object o2) {
-	        return o1 == null ? o2 == null : (o1 == o2 || o1.equals(o2));
-	    }
-	}
-	
 	class LocTF implements TerminalFunction {
 		Position [] tPos;
 		
