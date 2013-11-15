@@ -85,7 +85,7 @@ public class SmallGW {
 		gwd.setTransitionDynamics(transitionDynamics);
 		gwd.setInitialPosition(initialAgentPos.x, initialAgentPos.y);
 		gwd.populateDistance();
-		gwd.printDistanceFrom(0, 5);
+		//gwd.printDistanceFrom(0, 5);
 		domain = gwd.generateDomain();
 		sp = new GridWorldStateParser(domain);
 		
@@ -175,13 +175,13 @@ public class SmallGW {
 			for (int p = 0; p < goalPos.length  &&  !foundGoal; p++) {
 				if (goalPos[p].equals(aPos)) {
 					foundGoal = true;
-					r = goalReward;
+					r += goalReward;
 				}
 			}
 			for (int p = 0; p < pitPos.length  &&  !foundGoal; p++) {
 				if (pitPos[p].equals(aPos)) {
 					foundGoal = true;
-					r = pitReward;
+					r += pitReward;
 				}
 			}
 			
@@ -260,6 +260,8 @@ public class SmallGW {
 		rmaxplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
 		rmaxplanner.setNumEpisodesToStore(numberOfEpisodes);
 		rmaxplanner.planFromState(initialState);
+		
+		rmaxplanner.printRmaxDebug();
 		
 		if (recordData) {
 			outputEpisodeData(rmaxplanner.getAllStoredLearningEpisodes(),

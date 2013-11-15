@@ -28,6 +28,10 @@ public class RmaxMemoryNode {
 	public Set<GroundedAction> getGroundedActions() {
 		return this.pastSA.keySet();
 	}
+	public Map<GroundedAction, Double> getPastRewards() {
+		return this.pastRewards;
+	}
+	
 	public void addExperience(GroundedAction action, StateHashTuple resultState, double reward) {
 		//Update rewards
 		double r = 0.;
@@ -69,7 +73,7 @@ public class RmaxMemoryNode {
 		if (this.updatedActions.contains(action)) return;
 		this.updatedActions.add(action);
 		double totalReward = this.pastRewards.get(action);
-		if (totalReward>0) System.out.println("totalReward "+totalReward);
+		//if (totalReward>0) System.out.println("totalReward "+totalReward);
 		this.estRewards.put(action, totalReward/m);
 		
 		Map<StateHashTuple, Integer> nSASMap = pastSAS.get(action);

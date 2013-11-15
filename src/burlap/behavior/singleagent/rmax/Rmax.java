@@ -19,7 +19,9 @@ import burlap.behavior.singleagent.planning.QComputablePlanner;
 import burlap.behavior.singleagent.planning.commonpolicies.GreedyQPolicy;
 import burlap.behavior.statehashing.StateHashFactory;
 import burlap.behavior.statehashing.StateHashTuple;
+import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.oomdp.core.Domain;
+import burlap.oomdp.core.ObjectInstance;
 import burlap.oomdp.core.State;
 import burlap.oomdp.core.TerminalFunction;
 import burlap.oomdp.singleagent.Action;
@@ -95,7 +97,7 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 
 		this.goalReward = goalReward;
 		double qInitValue;
-		if (gamma != 1) {
+		if (gamma != 1.) {
 			qInitValue = goalReward/(1. - gamma);
 		}
 		else {
@@ -151,8 +153,36 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 			this.runLearningEpisodeFrom(initialState);
 			eCount++;
 		} while (eCount < numEpisodesForPlanning);
+		
 	}
 	
+	public void printRmaxDebug() {
+		System.out.println("Q-Values");
+		for (StateHashTuple sht : qIndex.keySet()) {
+			printRmaxDebugPos(sht);
+			for (QValue qv : qIndex.get(sht).qEntry) {
+				System.out.printf("%.2f ", qv.q);
+				//System.out.print(qv.q + " ");
+			}
+			System.out.println("");
+		}
+		System.out.println("Experienced Rewards");
+		for (StateHashTuple sht : pastExperience.keySet()) {
+			printRmaxDebugPos(sht);
+			for (GroundedAction ga : pastExperience.get(sht).getPastRewards().keySet()) {
+				System.out.printf("%.2f ", pastExperience.get(sht).getPastRewards().get(ga));
+				//System.out.print(pastExperience.get(sht).getPastRewards().get(ga) + " ");				
+			}
+			System.out.println("");
+		}
+	}
+	
+	public void printRmaxDebugPos(StateHashTuple sht) {
+		ObjectInstance agent = sht.s.getObjectsOfTrueClass(GridWorldDomain.CLASSAGENT).get(0);
+		int x = agent.getDiscValForAttribute(GridWorldDomain.ATTX);
+		int y = agent.getDiscValForAttribute(GridWorldDomain.ATTY);
+		System.out.print("x = " + x + ", y = " + y + ":  ");
+	}
 	
 	/**
 	 * @param args
@@ -324,7 +354,7 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 			
 			if (memoryNode.hasEnoughExperience(action,m)) {
 				memoryNode.updateEstimations(action, m);
-				for (int i=0; i<10; i++) {
+				for (int i=0; i<1; i++) {
 					for (StateHashTuple state: pastExperience.keySet()) { // s
 						RmaxMemoryNode node = pastExperience.get(state); // s
 						for(GroundedAction a : node.getGroundedActions()) { // a
