@@ -84,7 +84,8 @@ public class SmallGW {
 		};
 		gwd.setTransitionDynamics(transitionDynamics);
 		gwd.setInitialPosition(initialAgentPos.x, initialAgentPos.y);
-
+		gwd.populateDistance();
+		gwd.printDistanceFrom(0, 5);
 		domain = gwd.generateDomain();
 		sp = new GridWorldStateParser(domain);
 		

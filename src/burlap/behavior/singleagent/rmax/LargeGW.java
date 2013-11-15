@@ -176,6 +176,8 @@ public class LargeGW {
 				{0., 0., 0., 1.}
 			};
 		gwd.setTransitionDynamics(transitionDynamics);
+		gwd.populateDistance();
+		gwd.printDistanceFrom(4, 10);
 		domain = gwd.generateDomain();
 		
 		// goals and pits

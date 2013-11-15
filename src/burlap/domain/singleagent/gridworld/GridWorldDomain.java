@@ -567,26 +567,25 @@ public class GridWorldDomain implements DomainGenerator {
 		int from_x = from.x;
 		int from_y = from.y;
 		int to_x, to_y;
-		switch (action) {
-		case ACTIONNORTH:
+		if (action.equals(ACTIONNORTH)) {
 			to_x = from_x;
 			to_y = from_y + 1;
 			if (!inYRange(to_y)) return null;
 			if (this.northWalls[from_x][from_y]) return null;
 			return new Position(to_x,to_y);
-		case ACTIONSOUTH:
+		} else if (action.equals(ACTIONSOUTH)) {
 			to_x = from_x;
 			to_y = from_y - 1;
 			if (!inYRange(to_y)) return null;
 			if (this.northWalls[to_x][to_y]) return null;
 			return new Position(to_x,to_y);
-		case ACTIONEAST:
+		} else if (action.equals(ACTIONEAST)) {
 			to_x = from_x + 1;
 			to_y = from_y;
 			if (!inXRange(to_x)) return null;
 			if (this.eastWalls[from_x][from_y]) return null;
 			return new Position(to_x,to_y);
-		case ACTIONWEST:
+		} else if (action.equals(ACTIONWEST)) {
 			to_x = from_x - 1;
 			to_y = from_y;
 			if (!inXRange(to_x)) return null;
@@ -602,6 +601,16 @@ public class GridWorldDomain implements DomainGenerator {
 	
 	private boolean inYRange(int y) {
 		return (y>=0 && y<this.height);
+	}
+	
+	public void printDistanceFrom(int from_x, int from_y) {
+		int[] distances = this.distance[from_x*height + from_y];
+		for (int y = height-1; y >= 0; y--) {
+			for (int x = 0; x < width; x++) {
+				System.out.printf("%d ",distances[x*height+y]);
+			}
+			System.out.println();
+		}
 	}
 
 	public class ResetAction extends Action {
