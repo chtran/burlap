@@ -1,11 +1,11 @@
 package burlap.domain.singleagent.gridworld;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import burlap.datastructures.Tuple;
 import burlap.debugtools.RandomFactory;
 import burlap.oomdp.auxiliary.DomainGenerator;
 import burlap.oomdp.core.Attribute;
@@ -544,18 +544,18 @@ public class GridWorldDomain implements DomainGenerator {
 			toReturn[i] = Integer.MAX_VALUE;
 		}
 		toReturn[from_x*height + from_y] = 0;
-		List<Position> justExplored = new ArrayList<Position>();
+		LinkedList<Position> justExplored = new LinkedList<Position>();
 		justExplored.add(new Position(from_x, from_y));
+		String[] actions = new String[] {ACTIONNORTH, ACTIONSOUTH, ACTIONEAST, ACTIONWEST};
 		while (!justExplored.isEmpty()) {
-			Position current = justExplored.remove(0);
+			Position current = justExplored.removeFirst();
 			int current_distance = toReturn[current.x*height + current.y];
-			String[] actions = new String[] {ACTIONNORTH, ACTIONSOUTH, ACTIONEAST, ACTIONWEST};
 			for (String action: actions) {
 				Position dest = getDest(current, action);
 				if (dest != null) {
 					if (toReturn[dest.x*height + dest.y]==Integer.MAX_VALUE) {
 						toReturn[dest.x*height + dest.y] = current_distance+1;
-						justExplored.add(dest);
+						justExplored.addLast(dest);
 					}
 				}
 			}
@@ -603,6 +603,7 @@ public class GridWorldDomain implements DomainGenerator {
 	private boolean inYRange(int y) {
 		return (y>=0 && y<this.height);
 	}
+
 	public class ResetAction extends Action {
 		
 		public ResetAction(String name, Domain domain){
