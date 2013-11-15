@@ -40,7 +40,7 @@ public class SmallGW {
 	GridWorldDomain				gwd;
 	LocTF						tf;
 	LocRF						rf;
-	double						discountFactor = .95;
+	double						discountFactor = 1.;
 	double						stepCost = -0.1;
 	boolean [][]				northWalls;
 	boolean [][]				eastWalls;

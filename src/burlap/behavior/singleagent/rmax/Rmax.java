@@ -94,8 +94,15 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		this.qIndex = new HashMap<StateHashTuple, QLearningStateNode>();
 
 		this.goalReward = goalReward;
-		this.qInitFunction = new ValueFunctionInitialization.ConstantValueFunctionInitialization(goalReward/(1.-gamma));
-		
+		double qInitValue;
+		if (gamma != 1) {
+			qInitValue = goalReward/(1. - gamma);
+		}
+		else {
+			qInitValue = goalReward;
+		}
+		this.qInitFunction = new ValueFunctionInitialization.ConstantValueFunctionInitialization(qInitValue);
+
 		this.maxEpisodeSize = maxEpisodeSize;
 		
 		this.learningPolicy = new GreedyQPolicy(this);
@@ -301,9 +308,9 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 					ea.recordTransitionTo(nextState.s, action, r);
 				}
 			}
-			if (r>0) {
-				System.out.println("Found goal");
-			}
+//			if (r>0) {
+//				System.out.println("Found goal");
+//			}
 			RmaxMemoryNode memoryNode = new RmaxMemoryNode();
 			if (pastExperience.containsKey(curState)) {
 				memoryNode = pastExperience.get(curState);
