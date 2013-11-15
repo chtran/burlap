@@ -40,7 +40,7 @@ public class SmallGW {
 	GridWorldDomain				gwd;
 	LocTF						tf;
 	LocRF						rf;
-	double						discountFactor = 1.0;
+	double						discountFactor = .95;
 	double						stepCost = -0.1;
 	boolean [][]				northWalls;
 	boolean [][]				eastWalls;
@@ -54,7 +54,7 @@ public class SmallGW {
 	int 						maxEpisodeSize = 10000;
 	Boolean						enablePositionReset = true;
 	// Record data to outputPath
-	Boolean						recordData = false;
+	Boolean						recordData = true;
 	String outputPath = "/gpfs/main/home/oyakawa/Courses/2013-3-CS_2951F/Final_Project/output";
 	
 	public SmallGW() {
@@ -207,7 +207,8 @@ public class SmallGW {
 	
 	public void evaluatePolicy() {
 		//evaluateGoNorthPolicy();
-		evaluateQLearningPolicy();
+		//evaluateQLearningPolicy();
+		evaluateRmaxLearningPolicy();
 	}
 	
 	public void visualizeEpisode(String outputPath){
@@ -250,6 +251,19 @@ public class SmallGW {
 		if (recordData) {
 			outputEpisodeData(qlplanner.getAllStoredLearningEpisodes(),
 							"ql_results.txt");
+		}
+	}
+	
+	public void evaluateRmaxLearningPolicy() {
+		Rmax rmaxplanner = new Rmax(domain, rf, tf,
+				discountFactor, hashingFactory, 5., maxEpisodeSize, 5);
+		rmaxplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
+		rmaxplanner.setNumEpisodesToStore(numberOfEpisodes);
+		rmaxplanner.planFromState(initialState);
+		
+		if (recordData) {
+			outputEpisodeData(rmaxplanner.getAllStoredLearningEpisodes(),
+							"rmax_results.txt");
 		}
 	}
 	
