@@ -44,6 +44,7 @@ public class SmallGW {
 	RewardFunction				rf;
 	RewardFunction				shapedRF;
 	GridWorldPotential			gwp;
+	int							m = 5; // rmax
 	double						goalValue = 5;
 	double						rho = 0.8;
 	double						discountFactor = 1.;
@@ -70,7 +71,8 @@ public class SmallGW {
 		for (boolean [] row : northWalls)
 			Arrays.fill(row, false);
 		
-		//northWalls[0][4] = true;
+		// Disable for q-learning -- suspect bug in paper
+		northWalls[0][4] = true;
 		
 		gwd.setNorthWalls(northWalls);
 		
@@ -228,8 +230,8 @@ public class SmallGW {
 	
 	public void evaluatePolicy() {
 		//evaluateGoNorthPolicy();
-		evaluateQLearningPolicy();
-		//evaluateRmaxLearningPolicy();
+		//evaluateQLearningPolicy();
+		evaluateRmaxLearningPolicy();
 		//evaluateQwithShapingLearningPolicy();
 	}
 	
@@ -291,7 +293,7 @@ public class SmallGW {
 	
 	public void evaluateRmaxLearningPolicy() {
 		Rmax rmaxplanner = new Rmax(domain, rf, tf,
-				discountFactor, hashingFactory, 5., maxEpisodeSize, 5);
+				discountFactor, hashingFactory, goalValue, maxEpisodeSize, m);
 		rmaxplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
 		rmaxplanner.setNumEpisodesToStore(numberOfEpisodes);
 		rmaxplanner.planFromState(initialState);
