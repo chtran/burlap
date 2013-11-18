@@ -77,7 +77,7 @@ public class RmaxMemoryNode {
 		this.updatedActions.add(action);
 		double totalReward = this.pastRewards.get(action);
 		//if (totalReward>0) System.out.println("totalReward "+totalReward);
-		this.estRewards.put(action, totalReward/m);
+		this.estRewards.put(action, totalReward/(double)m);
 		
 		Map<StateHashTuple, Integer> nSASMap = pastSAS.get(action);
 		Map<StateHashTuple,Double> transitionMap = new HashMap<StateHashTuple, Double>();
@@ -87,7 +87,7 @@ public class RmaxMemoryNode {
 				nSAS = pastSAS.get(action).get(sh);
 			}
 			int nSA = pastSA.get(action);
-			transitionMap.put(sh, ((double)nSAS)/nSA);
+			transitionMap.put(sh, ((double)nSAS)/(double)nSA);
 			//System.out.println();
 			//Double x = (double)nSAS/nSA;
 			//if (x > 1.0  ||  x < 0.0)
