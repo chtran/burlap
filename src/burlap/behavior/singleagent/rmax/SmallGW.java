@@ -11,6 +11,8 @@ import burlap.behavior.singleagent.EpisodeAnalysis;
 import burlap.behavior.singleagent.EpisodeSequenceVisualizer;
 import burlap.behavior.singleagent.Policy;
 import burlap.behavior.singleagent.learning.tdmethods.QLearning;
+import burlap.behavior.singleagent.shaping.potential.GridWorldPotential;
+import burlap.behavior.singleagent.shaping.potential.PotentialShapedRF;
 import burlap.behavior.statehashing.DiscreteStateHashFactory;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
 import burlap.domain.singleagent.gridworld.GridWorldStateParser;
@@ -38,8 +40,12 @@ public class SmallGW {
 
 	Domain						domain;
 	GridWorldDomain				gwd;
-	LocTF						tf;
-	LocRF						rf;
+	TerminalFunction			tf;
+	RewardFunction				rf;
+	RewardFunction				shapedRF;
+	GridWorldPotential			gwp;
+	double						goalValue = 5;
+	double						rho = 0.8;
 	double						discountFactor = 1.;
 	double						stepCost = -0.1;
 	boolean [][]				northWalls;
@@ -64,7 +70,7 @@ public class SmallGW {
 		for (boolean [] row : northWalls)
 			Arrays.fill(row, false);
 		
-		northWalls[0][4] = true;
+		//northWalls[0][4] = true;
 		
 		gwd.setNorthWalls(northWalls);
 		
@@ -76,12 +82,26 @@ public class SmallGW {
 		
 		gwd.setEnablePositionReset(enablePositionReset);
 		
+//		double [][] transitionDynamics = new double [][] {
+//			{0.8, 0., 0.1, 0.1},
+//			{0., 0.8, 0.1, 0.1},
+//			{0.1, 0.1, 0.8, 0.},
+//			{0.1, 0.1, 0., 0.8},
+//		};
+		double rho2 = (1-rho)/2;
 		double [][] transitionDynamics = new double [][] {
-			{0.8, 0., 0.1, 0.1},
-			{0., 0.8, 0.1, 0.1},
-			{0.1, 0.1, 0.8, 0.},
-			{0.1, 0.1, 0., 0.8},
+			{rho, 0., rho2, rho2, 0.},
+			{0., rho, rho2, rho2, 0.},
+			{rho2, rho2, rho, 0., 0.},
+			{rho2, rho2, 0., rho, 0.},
+			{0.,0.,0.,0.,1.}
 		};
+//		double [][] transitionDynamics = new double [][] {
+//				{1., 0., 0., 0.},
+//				{0., 1., 0., 0.},
+//				{0., 0., 1., 0.},
+//				{0., 0., 0., 1.},
+//			};
 		gwd.setTransitionDynamics(transitionDynamics);
 		gwd.setInitialPosition(initialAgentPos.x, initialAgentPos.y);
 		gwd.populateDistance();
@@ -105,11 +125,12 @@ public class SmallGW {
 		};
 		
 		tf = new LocTF(goalPos, pitPos);
-		rf = new LocRF(goalPos, 5.0, pitPos, -1.0);
-		
+		rf = new LocRF(goalPos, goalValue, pitPos, -1.0);
+		gwp = new GridWorldPotential(gwd, goalPos[0], stepCost, rho, goalValue);
+		shapedRF = new PotentialShapedRF(rf, gwp, discountFactor);
 		initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
 		GridWorldDomain.setAgent(initialState, initialAgentPos.x, initialAgentPos.y);
-		GridWorldDomain.setLocation(initialState, 0, goalPos[0].x, goalPos[0].y);
+		//GridWorldDomain.setLocation(initialState, 0, goalPos[0].x, goalPos[0].y);
 		
 		hashingFactory = new DiscreteStateHashFactory();
 		hashingFactory.setAttributesForClass(GridWorldDomain.CLASSAGENT,
@@ -207,8 +228,9 @@ public class SmallGW {
 	
 	public void evaluatePolicy() {
 		//evaluateGoNorthPolicy();
-		//evaluateQLearningPolicy();
-		evaluateRmaxLearningPolicy();
+		evaluateQLearningPolicy();
+		//evaluateRmaxLearningPolicy();
+		//evaluateQwithShapingLearningPolicy();
 	}
 	
 	public void visualizeEpisode(String outputPath){
@@ -254,6 +276,19 @@ public class SmallGW {
 		}
 	}
 	
+	public void evaluateQwithShapingLearningPolicy() {
+		QLearning qlplanner = new QLearning(domain, shapedRF, tf,
+				discountFactor, hashingFactory, 0., .02, maxEpisodeSize);
+		qlplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
+		qlplanner.setNumEpisodesToStore(numberOfEpisodes);
+		qlplanner.planFromState(initialState);
+		
+		if (recordData) {
+			outputEpisodeData(qlplanner.getAllStoredLearningEpisodes(),
+							"qls_results.txt");
+		}
+	}
+	
 	public void evaluateRmaxLearningPolicy() {
 		Rmax rmaxplanner = new Rmax(domain, rf, tf,
 				discountFactor, hashingFactory, 5., maxEpisodeSize, 5);
@@ -287,10 +322,12 @@ public class SmallGW {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		SmallGW myWorld = new SmallGW();	
+		//SmallGW myWorld = new SmallGW();	
 		//myWorld.visualExplorer();
-		//for (int ii = 0; ii < 2000; ii++)
+		for (int ii = 0; ii < 40; ii++) {
+			SmallGW myWorld = new SmallGW();
 			myWorld.evaluatePolicy();
+		}
 	}
 
 }

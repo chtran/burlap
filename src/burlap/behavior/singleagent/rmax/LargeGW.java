@@ -177,7 +177,7 @@ public class LargeGW {
 			};
 		gwd.setTransitionDynamics(transitionDynamics);
 		gwd.populateDistance();
-		gwd.printDistanceFrom(4, 10);
+		System.out.println("Done populating distance");
 		domain = gwd.generateDomain();
 		
 		// goals and pits
@@ -237,6 +237,8 @@ public class LargeGW {
 		hashingFactory = new DiscreteStateHashFactory();
 		hashingFactory.setAttributesForClass(GridWorldDomain.CLASSAGENT,
 				domain.getObjectClass(GridWorldDomain.CLASSAGENT).attributeList);
+		System.out.println("Done with init");
+
 	}
 
 	class LocTF implements TerminalFunction {
@@ -330,13 +332,17 @@ public class LargeGW {
 			outputPath = outputPath + "/";
 		}
 		
-
+		System.out.println(1);
 		
 		QLearning qlplanner = new QLearning(domain, rf, tf,
 				discountFactor, hashingFactory, 0., .02, 10000);
 		qlplanner.setMaximumEpisodesForPlanning(1500);
 		qlplanner.setNumEpisodesToStore(1500);
+		System.out.println(2);
+
 		qlplanner.planFromState(initialState);
+		System.out.println(3);
+
 		List<EpisodeAnalysis> episodes = qlplanner.getAllStoredLearningEpisodes();
 		System.out.println("length "+episodes.size());
 		int i=1;
