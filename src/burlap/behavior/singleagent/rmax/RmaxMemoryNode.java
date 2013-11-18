@@ -31,6 +31,9 @@ public class RmaxMemoryNode {
 	public Map<GroundedAction, Double> getPastRewards() {
 		return this.pastRewards;
 	}
+	public Map<GroundedAction, Double> getEstRewards() {
+		return this.estRewards;
+	}
 	
 	public void addExperience(GroundedAction action, StateHashTuple resultState, double reward) {
 		//Update rewards

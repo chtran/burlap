@@ -24,7 +24,6 @@ import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.ObjectInstance;
 import burlap.oomdp.core.State;
 import burlap.oomdp.core.TerminalFunction;
-import burlap.oomdp.singleagent.Action;
 import burlap.oomdp.singleagent.GroundedAction;
 import burlap.oomdp.singleagent.RewardFunction;
 
@@ -157,24 +156,30 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 	}
 	
 	public void printRmaxDebug() {
+		double maxQ = Double.NEGATIVE_INFINITY;
 		System.out.println("Q-Values");
 		for (StateHashTuple sht : qIndex.keySet()) {
 			printRmaxDebugPos(sht);
 			for (QValue qv : qIndex.get(sht).qEntry) {
 				System.out.printf("%.2f ", qv.q);
 				//System.out.print(qv.q + " ");
+				maxQ = Math.max(maxQ, qv.q);
 			}
 			System.out.println("");
 		}
+		
+		double maxR = Double.NEGATIVE_INFINITY;
 		System.out.println("Experienced Rewards");
 		for (StateHashTuple sht : pastExperience.keySet()) {
 			printRmaxDebugPos(sht);
-			for (GroundedAction ga : pastExperience.get(sht).getPastRewards().keySet()) {
-				System.out.printf("%.2f ", pastExperience.get(sht).getPastRewards().get(ga));
-				//System.out.print(pastExperience.get(sht).getPastRewards().get(ga) + " ");				
+			for (GroundedAction ga : pastExperience.get(sht).getEstRewards().keySet()) {
+				System.out.printf("%.2f ", pastExperience.get(sht).getEstRewards().get(ga));
+				//System.out.print(pastExperience.get(sht).getEstRewards().get(ga) + " ");
+				maxR = Math.max(maxR, pastExperience.get(sht).getEstRewards().get(ga));
 			}
 			System.out.println("");
 		}
+		System.out.println("Max Q: " + maxQ + "    " + "max R: " + maxR);
 	}
 	
 	public void printRmaxDebugPos(StateHashTuple sht) {
@@ -184,14 +189,6 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		System.out.print("x = " + x + ", y = " + y + ":  ");
 	}
 	
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
-
 	@Override
 	public List<QValue> getQs(State s) {
 		return this.getQs(this.stateHash(s));
@@ -391,5 +388,13 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		episodeHistory.offer(ea);
 		
 		return ea;
+	}
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
 	}
 }
