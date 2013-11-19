@@ -16,6 +16,7 @@ import burlap.behavior.singleagent.learning.tdmethods.QLearningStateNode;
 import burlap.behavior.singleagent.options.Option;
 import burlap.behavior.singleagent.planning.OOMDPPlanner;
 import burlap.behavior.singleagent.planning.QComputablePlanner;
+import burlap.behavior.singleagent.planning.commonpolicies.EpsilonGreedy;
 import burlap.behavior.singleagent.planning.commonpolicies.GreedyQPolicy;
 import burlap.behavior.statehashing.StateHashFactory;
 import burlap.behavior.statehashing.StateHashTuple;
@@ -107,6 +108,7 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		this.maxEpisodeSize = maxEpisodeSize;
 		
 		this.learningPolicy = new GreedyQPolicy(this);
+		//this.learningPolicy = new EpsilonGreedy(this, 0.1);
 		
 		this.m = m;
 	}
@@ -162,7 +164,6 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 			printRmaxDebugPos(sht);
 			for (QValue qv : qIndex.get(sht).qEntry) {
 				System.out.printf("%.2f ", qv.q);
-				//System.out.print(qv.q + " ");
 				maxQ = Math.max(maxQ, qv.q);
 			}
 			System.out.println("");
@@ -174,12 +175,13 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 			printRmaxDebugPos(sht);
 			for (GroundedAction ga : pastExperience.get(sht).getEstRewards().keySet()) {
 				System.out.printf("%.2f ", pastExperience.get(sht).getEstRewards().get(ga));
-				//System.out.print(pastExperience.get(sht).getEstRewards().get(ga) + " ");
 				maxR = Math.max(maxR, pastExperience.get(sht).getEstRewards().get(ga));
 			}
 			System.out.println("");
 		}
 		System.out.println("Max Q: " + maxQ + "    " + "max R: " + maxR);
+		System.out.println("Last discounted return: " + 
+				getLastLearningEpisode().getDiscountedReturn(this.gamma));
 	}
 	
 	public void printRmaxDebugPos(StateHashTuple sht) {

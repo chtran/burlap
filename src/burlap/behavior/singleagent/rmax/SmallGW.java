@@ -91,13 +91,19 @@ public class SmallGW {
 //			{0.1, 0.1, 0., 0.8},
 //		};
 		double rho2 = (1-rho)/2;
+//		double [][] transitionDynamics = new double [][] {
+//			{rho, 0., rho2, rho2, 0.},
+//			{0., rho, rho2, rho2, 0.},
+//			{rho2, rho2, rho, 0., 0.},
+//			{rho2, rho2, 0., rho, 0.},
+//			{0.,0.,0.,0.,1.}
+//		};
 		double [][] transitionDynamics = new double [][] {
-			{rho, 0., rho2, rho2, 0.},
-			{0., rho, rho2, rho2, 0.},
-			{rho2, rho2, rho, 0., 0.},
-			{rho2, rho2, 0., rho, 0.},
-			{0.,0.,0.,0.,1.}
-		};
+				{rho, 0., rho2, rho2},
+				{0., rho, rho2, rho2},
+				{rho2, rho2, rho, 0.},
+				{rho2, rho2, 0., rho}
+			};
 //		double [][] transitionDynamics = new double [][] {
 //				{1., 0., 0., 0.},
 //				{0., 1., 0., 0.},
@@ -151,8 +157,6 @@ public class SmallGW {
 			tPos = new Position[goalPos.length + pitPos.length];
 			System.arraycopy(goalPos, 0, tPos, 0, goalPos.length);
 			System.arraycopy(pitPos, 0, tPos, goalPos.length, pitPos.length);
-			//for (int p = 0; p < tPos.length; p++)
-			//	System.out.println(tPos[p].x + " " + tPos[p].y);
 		}
 		
 		@Override
@@ -326,7 +330,9 @@ public class SmallGW {
 	public static void main(String[] args) {
 		//SmallGW myWorld = new SmallGW();	
 		//myWorld.visualExplorer();
-		for (int ii = 0; ii < 40; ii++) {
+		int numExperiments = 40;
+		for (int ii = 0; ii < numExperiments; ii++) {
+			System.out.println("Run " + ii + " of " + numExperiments);
 			SmallGW myWorld = new SmallGW();
 			myWorld.evaluatePolicy();
 		}

@@ -8,10 +8,16 @@ import java.util.Arrays;
 import java.util.List;
 
 import burlap.behavior.singleagent.EpisodeAnalysis;
+import burlap.behavior.singleagent.EpisodeSequenceVisualizer;
 import burlap.behavior.singleagent.Policy;
+import burlap.behavior.singleagent.Policy.ActionProb;
 import burlap.behavior.singleagent.learning.tdmethods.QLearning;
+import burlap.behavior.singleagent.rmax.SmallGW.LocRF;
+import burlap.behavior.singleagent.shaping.potential.GridWorldPotential;
+import burlap.behavior.singleagent.shaping.potential.PotentialShapedRF;
 import burlap.behavior.statehashing.DiscreteStateHashFactory;
 import burlap.domain.singleagent.gridworld.GridWorldDomain;
+import burlap.domain.singleagent.gridworld.GridWorldStateParser;
 import burlap.domain.singleagent.gridworld.GridWorldVisualizer;
 import burlap.domain.singleagent.gridworld.Position;
 import burlap.oomdp.auxiliary.StateParser;
@@ -34,25 +40,34 @@ import burlap.oomdp.visualizer.Visualizer;
  */
 public class LargeGW {
 
-	Domain domain;
-	GridWorldDomain gwd;
-	LocTF tf;
-	LocRF rf;
-	double discountFactor = 1.0;
-	double stepCost = -0.001;
-	boolean [][] northWalls;
-	boolean [][] eastWalls;
+	Domain						domain;
+	GridWorldDomain				gwd;
+	TerminalFunction			tf;
+	RewardFunction				rf;
+	RewardFunction				shapedRF;
+	GridWorldPotential			gwp;
+	int							m = 5; // rmax
+	double						goalValue = 1.;
+	double						rho = 0.8;
+	double						discountFactor = 1.;
+	double						stepCost = -0.001;
+	boolean [][]				northWalls;
+	boolean [][]				eastWalls;
+	Position []					pitPos;
+	Position []					goalPos;
+	Position					initialAgentPos = new Position(4, 10);
 	State 						initialState;
 	DiscreteStateHashFactory	hashingFactory;
-	StateParser sp;
-	
+	StateParser					sp;
+	int 						numberOfEpisodes = 1500;
+	int 						maxEpisodeSize = 10000;
+	Boolean						enablePositionReset = false;
+	// Record data to outputPath
+	Boolean						recordData = true;
+	String outputPath = "/gpfs/main/home/oyakawa/Courses/2013-3-CS_2951F/Final_Project/output";
+
 	public LargeGW() {
 		gwd = new GridWorldDomain(15,15); // Column, Row (x,y)
-		for (int r = 1; r <= 4; r++) {
-			//gwd.setObstacleInCell(0, r);
-			//gwd.setObstacleInCell(2, r);
-			//gwd.horizontalWall(0, 3, 0);
-		}
 		
 		northWalls = new boolean [15][15];
 		for (boolean [] row : northWalls)
@@ -169,22 +184,30 @@ public class LargeGW {
 //			{0.1, 0.1, 0.8, 0.},
 //			{0.1, 0.1, 0., 0.8}
 //		};
+//		double [][] transitionDynamics = new double [][] {
+//				{1., 0., 0., 0.},
+//				{0., 1., 0., 0.},
+//				{0., 0., 1., 0.},
+//				{0., 0., 0., 1.}
+//		};
+		double rho2 = (1-rho)/2;
 		double [][] transitionDynamics = new double [][] {
-				{1., 0., 0., 0.},
-				{0., 1., 0., 0.},
-				{0., 0., 1., 0.},
-				{0., 0., 0., 1.}
-			};
+			{rho, 0., rho2, rho2, 0.},
+			{0., rho, rho2, rho2, 0.},
+			{rho2, rho2, rho, 0., 0.},
+			{rho2, rho2, 0., rho, 0.},
+			{0.,0.,0.,0.,1.}
+		};
 		gwd.setTransitionDynamics(transitionDynamics);
 		gwd.populateDistance();
-		System.out.println("Done populating distance");
 		domain = gwd.generateDomain();
+		sp = new GridWorldStateParser(domain);
 		
 		// goals and pits
-		Position [] goalPos = new Position [] {
+		goalPos = new Position [] {
 			new Position(10,4),
 		};
-		Position [] pitPos = new Position [] {
+		pitPos = new Position [] {
 			new Position(3,0),
 			new Position(6,0),
 			new Position(7,0),
@@ -231,14 +254,18 @@ public class LargeGW {
 		};
 		
 		tf = new LocTF(goalPos, pitPos);
-		rf = new LocRF(goalPos, 1.0, pitPos, -1.0);
+		rf = new LocRF(goalPos, goalValue, pitPos, -1.0);
+		gwp = new GridWorldPotential(gwd, goalPos[0], stepCost, rho, goalValue);
 		initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
-
+		GridWorldDomain.setAgent(initialState, initialAgentPos.x, initialAgentPos.y);
+		
 		hashingFactory = new DiscreteStateHashFactory();
 		hashingFactory.setAttributesForClass(GridWorldDomain.CLASSAGENT,
 				domain.getObjectClass(GridWorldDomain.CLASSAGENT).attributeList);
-		System.out.println("Done with init");
-
+		
+		if(!outputPath.endsWith("/")) {
+			outputPath = outputPath + "/";
+		}
 	}
 
 	class LocTF implements TerminalFunction {
@@ -248,8 +275,6 @@ public class LargeGW {
 			tPos = new Position[goalPos.length + pitPos.length];
 			System.arraycopy(goalPos, 0, tPos, 0, goalPos.length);
 			System.arraycopy(pitPos, 0, tPos, goalPos.length, pitPos.length);
-			//for (int p = 0; p < tPos.length; p++)
-			//	System.out.println(tPos[p].x + " " + tPos[p].y);
 		}
 		
 		@Override
@@ -314,7 +339,7 @@ public class LargeGW {
 				gwd.getNorthWalls(), gwd.getEastWalls());
 		
 		State s = GridWorldDomain.getOneAgentNLocationState(domain, 0);
-		GridWorldDomain.setAgent(s, 4, 10);
+		GridWorldDomain.setAgent(s, initialAgentPos.x, initialAgentPos.y);
 		
 		VisualExplorer exp = new VisualExplorer(domain, v, s);
 		exp.addKeyAction("w", GridWorldDomain.ACTIONNORTH);
@@ -327,37 +352,14 @@ public class LargeGW {
 	
 	public void evaluatePolicy() {
 		//evaluateGoNorthPolicy();
-		String outputPath = "/gpfs/main/home/oyakawa/Courses/2013-3-CS_2951F/Final_Project/output";
-		if(!outputPath.endsWith("/")) {
-			outputPath = outputPath + "/";
-		}
-		
-		System.out.println(1);
-		
-		QLearning qlplanner = new QLearning(domain, rf, tf,
-				discountFactor, hashingFactory, 0., .02, 10000);
-		qlplanner.setMaximumEpisodesForPlanning(1500);
-		qlplanner.setNumEpisodesToStore(1500);
-		System.out.println(2);
-
-		qlplanner.planFromState(initialState);
-		System.out.println(3);
-
-		List<EpisodeAnalysis> episodes = qlplanner.getAllStoredLearningEpisodes();
-		System.out.println("length "+episodes.size());
-		int i=1;
-		for (EpisodeAnalysis ea: episodes) {
-			System.out.println(i);
-			i++;
-			double pReturn = ea.getDiscountedReturn(discountFactor);
-			try {
-				PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outputPath+"qlresults.txt", true)));
-			    out.println(String.valueOf(pReturn));
-			    out.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+		//evaluateQLearningPolicy();
+		evaluateRmaxLearningPolicy();
+		//evaluateQwithShapingLearningPolicy();
+	}
+	
+	public void visualizeEpisode(String outputPath){
+		Visualizer v = GridWorldVisualizer.getVisualizer(domain, gwd.getMap(), northWalls, eastWalls);
+		EpisodeSequenceVisualizer evis = new EpisodeSequenceVisualizer(v, domain, sp, outputPath);
 	}
 	
 	public void evaluateGoNorthPolicy() {
@@ -379,20 +381,79 @@ public class LargeGW {
 		};
 		
 		State s = GridWorldDomain.getOneAgentNLocationState(domain, 0);
-		GridWorldDomain.setAgent(s, 0, 5);
+		GridWorldDomain.setAgent(s, initialAgentPos.x, initialAgentPos.y);
 		EpisodeAnalysis ea = p.evaluateBehavior(s, rf, tf, 1000);
 		double pReturn = ea.getDiscountedReturn(discountFactor);
 		System.out.println(pReturn);
+	}
+	
+	public void evaluateQLearningPolicy() {
+		QLearning qlplanner = new QLearning(domain, rf, tf,
+				discountFactor, hashingFactory, 0., .02, maxEpisodeSize);
+		qlplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
+		qlplanner.setNumEpisodesToStore(numberOfEpisodes);
+		qlplanner.planFromState(initialState);
+		
+		if (recordData) {
+			outputEpisodeData(qlplanner.getAllStoredLearningEpisodes(),
+							"ql_results.txt");
+		}
+	}
+	
+	public void evaluateQwithShapingLearningPolicy() {
+		QLearning qlplanner = new QLearning(domain, shapedRF, tf,
+				discountFactor, hashingFactory, 0., .02, maxEpisodeSize);
+		qlplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
+		qlplanner.setNumEpisodesToStore(numberOfEpisodes);
+		qlplanner.planFromState(initialState);
+		
+		if (recordData) {
+			outputEpisodeData(qlplanner.getAllStoredLearningEpisodes(),
+							"qls_results.txt");
+		}
+	}
+	
+	public void evaluateRmaxLearningPolicy() {
+		Rmax rmaxplanner = new Rmax(domain, rf, tf,
+				discountFactor, hashingFactory, goalValue, maxEpisodeSize, m);
+		rmaxplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
+		rmaxplanner.setNumEpisodesToStore(numberOfEpisodes);
+		rmaxplanner.planFromState(initialState);
+		
+		rmaxplanner.printRmaxDebug();
+		
+		if (recordData) {
+			outputEpisodeData(rmaxplanner.getAllStoredLearningEpisodes(),
+							"rmax_results.txt");
+		}
+	}
+	
+	public void outputEpisodeData(List<EpisodeAnalysis> episodes, String filename) {
+		try {
+			PrintWriter pw = new PrintWriter(
+					new BufferedWriter(
+							new FileWriter(outputPath + filename, true)));
+			for (EpisodeAnalysis ea: episodes) {
+				pw.println(String.valueOf(ea.getDiscountedReturn(discountFactor)));
+			}
+			pw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		LargeGW myWorld = new LargeGW();
+		//SmallGW myWorld = new SmallGW();	
 		//myWorld.visualExplorer();
-		//for (int ii = 0; ii < 20; ii++)
+		int numExperiments = 1;
+		for (int ii = 0; ii < numExperiments; ii++) {
+			System.out.println("Run " + ii + " of " + numExperiments);
+			LargeGW myWorld = new LargeGW();
 			myWorld.evaluatePolicy();
+		}
 	}
 
 }
