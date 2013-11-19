@@ -45,7 +45,7 @@ public class SmallGW {
 	RewardFunction				shapedRF;
 	GridWorldPotential			gwp;
 	int							m = 5; // rmax
-	double						goalValue = 5;
+	double						goalValue = 5.;
 	double						rho = 0.8;
 	double						discountFactor = 1.;
 	double						stepCost = -0.1;

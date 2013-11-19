@@ -291,28 +291,15 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 	
 	@Override
 	public EpisodeAnalysis runLearningEpisodeFrom(State initialState) {
-		
-		//this.toggleShouldAnnotateOptionDecomposition(shouldAnnotateOptions);
-		
 		EpisodeAnalysis ea = new EpisodeAnalysis(initialState);
 		
 		StateHashTuple curState = this.stateHash(initialState);
 		eStepCounter = 0;
 		
-		//maxQChangeInLastEpisode = 0.;
-		
 		while(!tf.isTerminal(curState.s) && eStepCounter < maxEpisodeSize){
-			//System.out.println(eStepCounter);
 			GroundedAction action = learningPolicy.getAction(curState.s);
-			//QValue curQ = this.getQ(curState, action);
 			
 			StateHashTuple nextState = this.stateHash(action.executeIn(curState.s));
-			
-//			double maxQ = 0.;
-//			
-//			if(!tf.isTerminal(nextState.s)){
-//				maxQ = this.getMaxQ(nextState);
-//			}
 			
 			//manage option specifics
 			double r = 0.;
@@ -335,42 +322,33 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 					ea.recordTransitionTo(nextState.s, action, r);
 				}
 			}
-//			if (r>0) {
-//				System.out.println("Found goal");
-//			}
-			RmaxMemoryNode memoryNode = new RmaxMemoryNode();
+
+			RmaxMemoryNode memoryNode;
 			if (pastExperience.containsKey(curState)) {
 				memoryNode = pastExperience.get(curState);
 			} else {
+				memoryNode = new RmaxMemoryNode();
 				pastExperience.put(curState, memoryNode);
 			}
-			if (!memoryNode.hasEnoughExperience(action,m))
-			{
+			if (!memoryNode.hasEnoughExperience(action,m)) {
 				memoryNode.addExperience(action,nextState,r);
 			}
 			
 			if (memoryNode.hasEnoughExperience(action,m)) {
 				memoryNode.updateEstimations(action, m);
-				for (int i=0; i<1; i++) {
-					for (StateHashTuple state: pastExperience.keySet()) { // s
-						RmaxMemoryNode node = pastExperience.get(state); // s
-						for(GroundedAction a : node.getGroundedActions()) { // a
-							if (node.hasEnoughExperience(a, m))
-							{
-								double sum_t_q = 0.;
-	
-								Map<StateHashTuple, Double> transitionDist = node.getEstTransitionDist(a);
-								for (StateHashTuple s_prime : transitionDist.keySet()) // s'
-								{
-									sum_t_q += transitionDist.get(s_prime)* this.getMaxQ(s_prime);
-								}
-								sum_t_q *= discount;
-								sum_t_q += node.getEstReward(a);
-								QValue iterQ = this.getQ(state, a);
-								iterQ.q = sum_t_q;
-								//System.out.println(sum_t_q);
+				for (StateHashTuple state: pastExperience.keySet()) { // s
+					RmaxMemoryNode node = pastExperience.get(state); // s
+					for(GroundedAction a : node.getGroundedActions()) { // a
+						if (node.hasEnoughExperience(a, m)) {
+							double sum_t_q = 0.;
+							Map<StateHashTuple, Double> transitionDist = node.getEstTransitionDist(a);
+							for (StateHashTuple s_prime : transitionDist.keySet()) { // s'
+								sum_t_q += transitionDist.get(s_prime)* this.getMaxQ(s_prime);
 							}
-							
+							sum_t_q *= discount;
+							sum_t_q += node.getEstReward(a);
+							QValue iterQ = this.getQ(state, a);
+							iterQ.q = sum_t_q;
 						}
 					}
 				}
@@ -378,8 +356,6 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 			
 			//move on
 			curState = nextState;
-			
-			
 		}
 		
 		if(episodeHistory.size() >= numEpisodesToStore){
