@@ -90,20 +90,20 @@ public class SmallGW {
 //			{0.1, 0.1, 0.8, 0.},
 //			{0.1, 0.1, 0., 0.8},
 //		};
-		double rho2 = (1-rho)/2;
-//		double [][] transitionDynamics = new double [][] {
-//			{rho, 0., rho2, rho2, 0.},
-//			{0., rho, rho2, rho2, 0.},
-//			{rho2, rho2, rho, 0., 0.},
-//			{rho2, rho2, 0., rho, 0.},
-//			{0.,0.,0.,0.,1.}
-//		};
+		double rho2 = (1.-rho)/2.;
 		double [][] transitionDynamics = new double [][] {
-				{rho, 0., rho2, rho2},
-				{0., rho, rho2, rho2},
-				{rho2, rho2, rho, 0.},
-				{rho2, rho2, 0., rho}
-			};
+			{rho, 0., rho2, rho2, 0.},
+			{0., rho, rho2, rho2, 0.},
+			{rho2, rho2, rho, 0., 0.},
+			{rho2, rho2, 0., rho, 0.},
+			{0.,0.,0.,0.,1.}
+		};
+//		double [][] transitionDynamics = new double [][] {
+//				{rho, 0., rho2, rho2},
+//				{0., rho, rho2, rho2},
+//				{rho2, rho2, rho, 0.},
+//				{rho2, rho2, 0., rho}
+//		};
 //		double [][] transitionDynamics = new double [][] {
 //				{1., 0., 0., 0.},
 //				{0., 1., 0., 0.},
@@ -235,8 +235,9 @@ public class SmallGW {
 	public void evaluatePolicy() {
 		//evaluateGoNorthPolicy();
 		//evaluateQLearningPolicy();
-		evaluateRmaxLearningPolicy();
 		//evaluateQwithShapingLearningPolicy();
+		evaluateRmaxLearningPolicy();
+		//evaluateRmaxWithShapingLearningPolicy();
 	}
 	
 	public void visualizeEpisode(String outputPath){
@@ -307,6 +308,21 @@ public class SmallGW {
 		if (recordData) {
 			outputEpisodeData(rmaxplanner.getAllStoredLearningEpisodes(),
 							"rmax_results.txt");
+		}
+	}
+	
+	public void evaluateRmaxWithShapingLearningPolicy() {
+		Rmax rmaxplanner = new Rmax(domain, shapedRF, tf,
+				discountFactor, hashingFactory, goalValue, maxEpisodeSize, m);
+		rmaxplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
+		rmaxplanner.setNumEpisodesToStore(numberOfEpisodes);
+		rmaxplanner.planFromState(initialState);
+		
+		rmaxplanner.printRmaxDebug();
+		
+		if (recordData) {
+			outputEpisodeData(rmaxplanner.getAllStoredLearningEpisodes(),
+							"rmaxs_results.txt");
 		}
 	}
 	

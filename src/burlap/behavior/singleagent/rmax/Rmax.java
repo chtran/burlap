@@ -248,7 +248,7 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		if(node == null){
 			node = new QLearningStateNode(s);
 			List<GroundedAction> gas = this.getAllGroundedActions(s.s);
-			if(gas.size() == 0){
+			if(gas.isEmpty()){
 				gas = this.getAllGroundedActions(s.s);
 				throw new RuntimeErrorException(new Error("No possible actions in this state, cannot continue Q-learning"));
 			}
@@ -263,16 +263,9 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		
 	}
 	
-	
-	
 	protected RmaxMemoryNode getMemoryNode(StateHashTuple s){
-		return this.pastExperience.get(s);
-		
+		return this.pastExperience.get(s);	
 	}
-	
-	
-	
-	
 	
 	/**
 	 * Returns the maximum Q-value in the hashed stated.
@@ -289,7 +282,6 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		}
 		return max;
 	}
-	
 	
 	@Override
 	public EpisodeAnalysis runLearningEpisodeFrom(State initialState) {

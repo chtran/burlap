@@ -190,7 +190,7 @@ public class LargeGW {
 //				{0., 0., 1., 0.},
 //				{0., 0., 0., 1.}
 //		};
-		double rho2 = (1-rho)/2;
+		double rho2 = (1.-rho)/2.;
 		double [][] transitionDynamics = new double [][] {
 			{rho, 0., rho2, rho2, 0.},
 			{0., rho, rho2, rho2, 0.},
@@ -353,8 +353,9 @@ public class LargeGW {
 	public void evaluatePolicy() {
 		//evaluateGoNorthPolicy();
 		//evaluateQLearningPolicy();
-		evaluateRmaxLearningPolicy();
 		//evaluateQwithShapingLearningPolicy();
+		evaluateRmaxLearningPolicy();
+		//evaluateRmaxWithShapingLearningPolicy();
 	}
 	
 	public void visualizeEpisode(String outputPath){
@@ -425,6 +426,21 @@ public class LargeGW {
 		if (recordData) {
 			outputEpisodeData(rmaxplanner.getAllStoredLearningEpisodes(),
 							"rmax_results.txt");
+		}
+	}
+	
+	public void evaluateRmaxWithShapingLearningPolicy() {
+		Rmax rmaxplanner = new Rmax(domain, shapedRF, tf,
+				discountFactor, hashingFactory, goalValue, maxEpisodeSize, m);
+		rmaxplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
+		rmaxplanner.setNumEpisodesToStore(numberOfEpisodes);
+		rmaxplanner.planFromState(initialState);
+		
+		rmaxplanner.printRmaxDebug();
+		
+		if (recordData) {
+			outputEpisodeData(rmaxplanner.getAllStoredLearningEpisodes(),
+							"rmaxs_results.txt");
 		}
 	}
 	
