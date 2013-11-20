@@ -293,22 +293,21 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 	
 	@Override
 	public EpisodeAnalysis runLearningEpisodeFrom(State initialState) {
-		EpisodeAnalysis ea = new EpisodeAnalysis(initialState);
-		
-		StateHashTuple curState = this.stateHash(initialState);
-		eStepCounter = 0;
+		EpisodeAnalysis ea		= new EpisodeAnalysis(initialState);
+		StateHashTuple curState	= this.stateHash(initialState);
+		eStepCounter			= 0;
 		
 		while(!tf.isTerminal(curState.s) && eStepCounter < maxEpisodeSize){
 			GroundedAction action = learningPolicy.getAction(curState.s);
-			
 			StateHashTuple nextState = this.stateHash(action.executeIn(curState.s));
 			
 			//manage option specifics
-			double r = 0.;
-			double discount = this.gamma;
+			double r;
+			double discount;
 			if(action.action.isPrimitive()){
 				r = rf.reward(curState.s, action, nextState.s);
 				eStepCounter++;
+				discount = this.gamma;
 				ea.recordTransitionTo(nextState.s, action, r);
 			}
 			else{
@@ -324,37 +323,39 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 					ea.recordTransitionTo(nextState.s, action, r);
 				}
 			}
-
-			RmaxMemoryNode memoryNode;
-			if (pastExperience.containsKey(curState)) {
-				memoryNode = pastExperience.get(curState);
-			} else {
-				memoryNode = new RmaxMemoryNode();
-				pastExperience.put(curState, memoryNode);
-			}
+			
+			if (!pastExperience.containsKey(curState)) {
+				pastExperience.put(curState, new RmaxMemoryNode());
+			}			
+			RmaxMemoryNode memoryNode = pastExperience.get(curState);
 			if (!memoryNode.hasEnoughExperience(action,m)) {
 				memoryNode.addExperience(action,nextState,r);
 			}
 			
 			if (memoryNode.hasEnoughExperience(action,m)) {
 				memoryNode.updateEstimations(action, m);
-				for (StateHashTuple state: pastExperience.keySet()) { // s
-					RmaxMemoryNode node = pastExperience.get(state); // s
-					for(GroundedAction a : node.getGroundedActions()) { // a
-						if (node.hasEnoughExperience(a, m)) {
-							double sum_t_q = 0.;
-							Map<StateHashTuple, Double> transitionDist = node.getEstTransitionDist(a);
-							for (StateHashTuple s_prime : transitionDist.keySet()) { // s'
-								sum_t_q += transitionDist.get(s_prime)* this.getMaxQ(s_prime);
+				RmaxMemoryNode					node;
+				Map<StateHashTuple, Double>		transitionDist;
+				double sum_t_q;
+				// update q values
+				for (int i = 0; i < 1; ++i) {
+					for (StateHashTuple state: pastExperience.keySet()) { // s
+						node = pastExperience.get(state);
+						for(GroundedAction a : node.getGroundedActions()) { // a
+							if (node.hasEnoughExperience(a, m)) {
+								sum_t_q = 0.;
+								transitionDist = node.getEstTransitionDist(a);
+								for (StateHashTuple s_prime : transitionDist.keySet()) { // s'
+									sum_t_q += transitionDist.get(s_prime) * this.getMaxQ(s_prime);
+								}
+								sum_t_q *= discount;
+								sum_t_q += node.getEstReward(a);
+								this.getQ(state, a).q = sum_t_q;
 							}
-							sum_t_q *= discount;
-							sum_t_q += node.getEstReward(a);
-							QValue iterQ = this.getQ(state, a);
-							iterQ.q = sum_t_q;
 						}
 					}
 				}
-			}		
+			}
 			
 			//move on
 			curState = nextState;

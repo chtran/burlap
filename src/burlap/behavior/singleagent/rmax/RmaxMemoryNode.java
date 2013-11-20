@@ -40,39 +40,45 @@ public class RmaxMemoryNode {
 	
 	public void addExperience(GroundedAction action, StateHashTuple resultState, double reward) {
 		//Update rewards
-		double r = 0.;
-		if (pastRewards.containsKey(action)) {
-			r = pastRewards.get(action);
+		double r;
+		if (this.pastRewards.containsKey(action)) {
+			r = this.pastRewards.get(action);
+		} else {
+			r = 0.;
 		}
-		pastRewards.put(action, r+reward);
+		this.pastRewards.put(action, r+reward);
 		
 		//Update state,action pair
-		int nSA = 0;
-		if (pastSA.containsKey(action)) {
-			nSA = pastSA.get(action);
+		int nSA;
+		if (this.pastSA.containsKey(action)) {
+			nSA = this.pastSA.get(action);
+		} else {
+			nSA = 0;
 		}
-		pastSA.put(action, nSA+1);
+		this.pastSA.put(action, nSA+1);
 		
 		//Update (state,action,result state)
 		Map<StateHashTuple, Integer> nSASMap;
-		if (pastSAS.containsKey(action)) {
-			nSASMap = pastSAS.get(action);
+		if (this.pastSAS.containsKey(action)) {
+			nSASMap = this.pastSAS.get(action);
 		} else {
 			nSASMap = new HashMap<StateHashTuple, Integer>();
 		}
-		int nSAS = 0;
+		int nSAS;
 		if (nSASMap.containsKey(resultState)) {
 			nSAS = nSASMap.get(resultState);
+		} else {
+			nSAS = 0;
 		}
 		nSASMap.put(resultState, nSAS+1);
 		this.pastSAS.put(action, nSASMap);
 	}
 	
 	public boolean hasEnoughExperience(GroundedAction action, int m) {
-		if (!pastSA.containsKey(action)) {
+		if (!this.pastSA.containsKey(action)) {
 			return false;
 		} else {
-			return (pastSA.get(action) >= m);
+			return (this.pastSA.get(action) >= m);
 		}
 	}
 	
@@ -83,14 +89,16 @@ public class RmaxMemoryNode {
 		double totalReward = this.pastRewards.get(action);
 		this.estRewards.put(action, totalReward/(double)m);
 		
-		Map<StateHashTuple, Integer> nSASMap = pastSAS.get(action);
+		Map<StateHashTuple, Integer> nSASMap = this.pastSAS.get(action);
 		Map<StateHashTuple,Double> transitionMap = new HashMap<StateHashTuple, Double>();
+		int nSAS, nSA;		
 		for (StateHashTuple sh: nSASMap.keySet()) {
-			int nSAS = 0;
-			if (pastSAS.containsKey(action)) {
-				nSAS = pastSAS.get(action).get(sh);
+			if (this.pastSAS.containsKey(action)) {
+				nSAS = this.pastSAS.get(action).get(sh);
+			} else {
+				nSAS = 0;
 			}
-			int nSA = pastSA.get(action);
+			nSA = this.pastSA.get(action);
 			transitionMap.put(sh, ((double)nSAS)/(double)nSA);
 		}
 		this.estTransition.put(action, transitionMap);
@@ -113,7 +121,7 @@ public class RmaxMemoryNode {
 	
 	public void printHashCodes() {
 		System.out.println("estTransition");
-		for (GroundedAction a: estTransition.keySet()) {
+		for (GroundedAction a: this.estTransition.keySet()) {
 			System.out.println(a.hashCode());
 		}
 	}
