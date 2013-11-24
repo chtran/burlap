@@ -72,7 +72,7 @@ public class SmallGW {
 			Arrays.fill(row, false);
 		
 		// Disable for q-learning -- suspect bug in paper
-		northWalls[0][4] = true;
+		//northWalls[0][4] = true;
 		
 		gwd.setNorthWalls(northWalls);
 		

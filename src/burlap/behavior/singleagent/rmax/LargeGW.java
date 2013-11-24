@@ -256,6 +256,7 @@ public class LargeGW {
 		tf = new LocTF(goalPos, pitPos);
 		rf = new LocRF(goalPos, goalValue, pitPos, -1.0);
 		gwp = new GridWorldPotential(gwd, goalPos[0], stepCost, rho, goalValue);
+		shapedRF = new PotentialShapedRF(rf, gwp, discountFactor);
 		initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
 		GridWorldDomain.setAgent(initialState, initialAgentPos.x, initialAgentPos.y);
 		
@@ -354,8 +355,8 @@ public class LargeGW {
 		//evaluateGoNorthPolicy();
 		//evaluateQLearningPolicy();
 		//evaluateQwithShapingLearningPolicy();
-		evaluateRmaxLearningPolicy();
-		//evaluateRmaxWithShapingLearningPolicy();
+		//evaluateRmaxLearningPolicy();
+		evaluateRmaxWithShapingLearningPolicy();
 	}
 	
 	public void visualizeEpisode(String outputPath){
@@ -462,7 +463,7 @@ public class LargeGW {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		//SmallGW myWorld = new SmallGW();	
+		//LargeGW myWorld = new LargeGW();	
 		//myWorld.visualExplorer();
 		int numExperiments = 1;
 		for (int ii = 0; ii < numExperiments; ii++) {

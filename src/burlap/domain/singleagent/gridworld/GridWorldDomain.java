@@ -460,22 +460,14 @@ public class GridWorldDomain implements DomainGenerator {
 		// check for directional walls
 		// north-south barrier, in the ax direction
 		boolean dirWall = false;
-		if (Math.min(ay,ny) >= 0  &&  Math.max(ay,ny) < this.northWalls[0].length)
-		{
-			for (int y = Math.min(ay,ny); y < Math.max(ay,ny) && !dirWall; y++) {
-				if (this.northWalls[ax][y]) {
-					dirWall = true;
-				}
-			}
+		if (Math.min(ay,ny) >= 0  &&  Math.max(ay,ny) < this.northWalls[0].length
+			&&  xd == 0  &&  yd != 0) {
+			dirWall = this.northWalls[ax][Math.min(ay,ny)];
 		}
 		// east-west barrier, in the ay direction
-		if (Math.min(ax,nx) >= 0  &&  Math.max(ax,nx) < this.eastWalls.length)
-		{		
-			for (int x = Math.min(ax,nx); x < Math.max(ax,nx) && !dirWall; x++) {
-				if (this.eastWalls[x][ay]) {
-					dirWall = true;
-				}
-			}
+		if (Math.min(ax,nx) >= 0  &&  Math.max(ax,nx) < this.eastWalls.length
+			&&  yd == 0  &&  xd != 0) {		
+			dirWall = this.eastWalls[Math.min(ax,nx)][ay];
 		}
 		
 		//hit wall, so do not change position
