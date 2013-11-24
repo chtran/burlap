@@ -72,7 +72,7 @@ public class SmallGW {
 			Arrays.fill(row, false);
 		
 		// Disable for q-learning -- suspect bug in paper
-		//northWalls[0][4] = true;
+		northWalls[0][4] = true;
 		
 		gwd.setNorthWalls(northWalls);
 		
@@ -221,7 +221,7 @@ public class SmallGW {
 				gwd.getNorthWalls(), gwd.getEastWalls());
 		
 		State s = GridWorldDomain.getOneAgentNLocationState(domain, 0);
-		GridWorldDomain.setAgent(s, 0, 5);
+		GridWorldDomain.setAgent(s, initialAgentPos.x, initialAgentPos.y);
 		
 		VisualExplorer exp = new VisualExplorer(domain, v, s);
 		exp.addKeyAction("w", GridWorldDomain.ACTIONNORTH);
@@ -264,7 +264,7 @@ public class SmallGW {
 		};
 		
 		State s = GridWorldDomain.getOneAgentNLocationState(domain, 0);
-		GridWorldDomain.setAgent(s, 0, 5);
+		GridWorldDomain.setAgent(s, initialAgentPos.x, initialAgentPos.y);
 		EpisodeAnalysis ea = p.evaluateBehavior(s, rf, tf, 1000);
 		double pReturn = ea.getDiscountedReturn(discountFactor);
 		System.out.println(pReturn);
@@ -347,7 +347,7 @@ public class SmallGW {
 		//SmallGW myWorld = new SmallGW();	
 		//myWorld.visualExplorer();
 		int numExperiments = 40;
-		for (int ii = 0; ii < numExperiments; ii++) {
+		for (int ii = 1; ii <= numExperiments; ii++) {
 			System.out.println("Run " + ii + " of " + numExperiments);
 			SmallGW myWorld = new SmallGW();
 			myWorld.evaluatePolicy();

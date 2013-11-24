@@ -466,7 +466,7 @@ public class LargeGW {
 		//LargeGW myWorld = new LargeGW();	
 		//myWorld.visualExplorer();
 		int numExperiments = 1;
-		for (int ii = 0; ii < numExperiments; ii++) {
+		for (int ii = 1; ii <= numExperiments; ii++) {
 			System.out.println("Run " + ii + " of " + numExperiments);
 			LargeGW myWorld = new LargeGW();
 			myWorld.evaluatePolicy();
