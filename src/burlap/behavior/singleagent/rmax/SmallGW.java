@@ -19,12 +19,13 @@ import burlap.domain.singleagent.gridworld.GridWorldStateParser;
 import burlap.domain.singleagent.gridworld.GridWorldVisualizer;
 import burlap.domain.singleagent.gridworld.Position;
 import burlap.oomdp.auxiliary.StateParser;
-import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.ObjectInstance;
 import burlap.oomdp.core.State;
 import burlap.oomdp.core.TerminalFunction;
 import burlap.oomdp.singleagent.GroundedAction;
 import burlap.oomdp.singleagent.RewardFunction;
+import burlap.oomdp.singleagent.SADomain;
+import burlap.oomdp.singleagent.common.VisualActionObserver;
 import burlap.oomdp.singleagent.explorer.VisualExplorer;
 import burlap.oomdp.visualizer.Visualizer;
 
@@ -38,7 +39,7 @@ import burlap.oomdp.visualizer.Visualizer;
  */
 public class SmallGW {
 
-	Domain						domain;
+	SADomain						domain;
 	GridWorldDomain				gwd;
 	TerminalFunction			tf;
 	RewardFunction				rf;
@@ -114,7 +115,7 @@ public class SmallGW {
 		gwd.setInitialPosition(initialAgentPos.x, initialAgentPos.y);
 		gwd.populateDistance();
 		//gwd.printDistanceFrom(0, 5);
-		domain = gwd.generateDomain();
+		domain = (SADomain) gwd.generateDomain();
 		sp = new GridWorldStateParser(domain);
 		
 		// goals and pits
@@ -233,10 +234,14 @@ public class SmallGW {
 	}
 	
 	public void evaluatePolicy() {
+		GridWorldDomain.setLocation(initialState, 0, goalPos[0].x, goalPos[0].y);
+		VisualActionObserver observer = new VisualActionObserver(domain, GridWorldVisualizer.getVisualizer(domain, gwd.getMap(), this.northWalls, this.eastWalls));
+		this.domain.setActionObserverForAllAction(observer);
+		observer.initGUI();
 		//evaluateGoNorthPolicy();
 		//evaluateQLearningPolicy();
-		//evaluateQwithShapingLearningPolicy();
-		evaluateRmaxLearningPolicy();
+		evaluateQwithShapingLearningPolicy();
+		//evaluateRmaxLearningPolicy();
 		//evaluateRmaxWithShapingLearningPolicy();
 	}
 	
@@ -260,6 +265,11 @@ public class SmallGW {
 			@Override
 			public GroundedAction getAction(State s) {
 				return new GroundedAction(domain.getAction(GridWorldDomain.ACTIONNORTH), "");
+			}
+
+			@Override
+			public boolean isDefinedFor(State s) {
+				return true;
 			}
 		};
 		
@@ -346,7 +356,8 @@ public class SmallGW {
 	public static void main(String[] args) {
 		//SmallGW myWorld = new SmallGW();	
 		//myWorld.visualExplorer();
-		int numExperiments = 40;
+		//int numExperiments = 40;
+		int numExperiments = 1;
 		for (int ii = 1; ii <= numExperiments; ii++) {
 			System.out.println("Run " + ii + " of " + numExperiments);
 			SmallGW myWorld = new SmallGW();

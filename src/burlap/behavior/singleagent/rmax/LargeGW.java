@@ -10,9 +10,7 @@ import java.util.List;
 import burlap.behavior.singleagent.EpisodeAnalysis;
 import burlap.behavior.singleagent.EpisodeSequenceVisualizer;
 import burlap.behavior.singleagent.Policy;
-import burlap.behavior.singleagent.Policy.ActionProb;
 import burlap.behavior.singleagent.learning.tdmethods.QLearning;
-import burlap.behavior.singleagent.rmax.SmallGW.LocRF;
 import burlap.behavior.singleagent.shaping.potential.GridWorldPotential;
 import burlap.behavior.singleagent.shaping.potential.PotentialShapedRF;
 import burlap.behavior.statehashing.DiscreteStateHashFactory;
@@ -21,12 +19,13 @@ import burlap.domain.singleagent.gridworld.GridWorldStateParser;
 import burlap.domain.singleagent.gridworld.GridWorldVisualizer;
 import burlap.domain.singleagent.gridworld.Position;
 import burlap.oomdp.auxiliary.StateParser;
-import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.ObjectInstance;
 import burlap.oomdp.core.State;
 import burlap.oomdp.core.TerminalFunction;
 import burlap.oomdp.singleagent.GroundedAction;
 import burlap.oomdp.singleagent.RewardFunction;
+import burlap.oomdp.singleagent.SADomain;
+import burlap.oomdp.singleagent.common.VisualActionObserver;
 import burlap.oomdp.singleagent.explorer.VisualExplorer;
 import burlap.oomdp.visualizer.Visualizer;
 
@@ -40,7 +39,7 @@ import burlap.oomdp.visualizer.Visualizer;
  */
 public class LargeGW {
 
-	Domain						domain;
+	SADomain						domain;
 	GridWorldDomain				gwd;
 	TerminalFunction			tf;
 	RewardFunction				rf;
@@ -200,7 +199,7 @@ public class LargeGW {
 		};
 		gwd.setTransitionDynamics(transitionDynamics);
 		gwd.populateDistance();
-		domain = gwd.generateDomain();
+		domain = (SADomain) gwd.generateDomain();
 		sp = new GridWorldStateParser(domain);
 		
 		// goals and pits
@@ -352,11 +351,15 @@ public class LargeGW {
 	}
 	
 	public void evaluatePolicy() {
+		GridWorldDomain.setLocation(initialState, 0, goalPos[0].x, goalPos[0].y);
+		VisualActionObserver observer = new VisualActionObserver(domain, GridWorldVisualizer.getVisualizer(domain, gwd.getMap(), this.northWalls, this.eastWalls));
+		this.domain.setActionObserverForAllAction(observer);
+		observer.initGUI();
 		//evaluateGoNorthPolicy();
 		//evaluateQLearningPolicy();
 		//evaluateQwithShapingLearningPolicy();
-		//evaluateRmaxLearningPolicy();
-		evaluateRmaxWithShapingLearningPolicy();
+		evaluateRmaxLearningPolicy();
+		//evaluateRmaxWithShapingLearningPolicy();
 	}
 	
 	public void visualizeEpisode(String outputPath){
@@ -379,6 +382,11 @@ public class LargeGW {
 			@Override
 			public GroundedAction getAction(State s) {
 				return new GroundedAction(domain.getAction(GridWorldDomain.ACTIONNORTH), "");
+			}
+			
+			@Override
+			public boolean isDefinedFor(State s) {
+				return true;
 			}
 		};
 		
