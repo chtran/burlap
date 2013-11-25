@@ -39,7 +39,7 @@ import burlap.oomdp.visualizer.Visualizer;
  */
 public class SmallGW {
 
-	SADomain						domain;
+	SADomain					domain;
 	GridWorldDomain				gwd;
 	TerminalFunction			tf;
 	RewardFunction				rf;
@@ -61,6 +61,7 @@ public class SmallGW {
 	int 						numberOfEpisodes = 2000;
 	int 						maxEpisodeSize = 10000;
 	Boolean						enablePositionReset = true;
+	Boolean						visualizeEpisodes = false;
 	// Record data to outputPath
 	Boolean						recordData = true;
 	String outputPath = "/gpfs/main/home/oyakawa/Courses/2013-3-CS_2951F/Final_Project/output";
@@ -219,7 +220,7 @@ public class SmallGW {
 	
 	public void visualExplorer(){
 		Visualizer v = GridWorldVisualizer.getVisualizer(domain, gwd.getMap(),
-				gwd.getNorthWalls(), gwd.getEastWalls());
+				this.pitPos, gwd.getNorthWalls(), gwd.getEastWalls());
 		
 		State s = GridWorldDomain.getOneAgentNLocationState(domain, 0);
 		GridWorldDomain.setAgent(s, initialAgentPos.x, initialAgentPos.y);
@@ -234,10 +235,14 @@ public class SmallGW {
 	}
 	
 	public void evaluatePolicy() {
-		GridWorldDomain.setLocation(initialState, 0, goalPos[0].x, goalPos[0].y);
-		VisualActionObserver observer = new VisualActionObserver(domain, GridWorldVisualizer.getVisualizer(domain, gwd.getMap(), this.northWalls, this.eastWalls));
-		this.domain.setActionObserverForAllAction(observer);
-		observer.initGUI();
+		if (visualizeEpisodes) {
+			GridWorldDomain.setLocation(initialState, 0, goalPos[0].x, goalPos[0].y);
+			VisualActionObserver observer = new VisualActionObserver(domain,
+					GridWorldVisualizer.getVisualizer(domain, gwd.getMap(),
+							this.pitPos, this.northWalls, this.eastWalls));
+			this.domain.setActionObserverForAllAction(observer);
+			observer.initGUI();
+		}
 		//evaluateGoNorthPolicy();
 		//evaluateQLearningPolicy();
 		evaluateQwithShapingLearningPolicy();
@@ -246,7 +251,7 @@ public class SmallGW {
 	}
 	
 	public void visualizeEpisode(String outputPath){
-		Visualizer v = GridWorldVisualizer.getVisualizer(domain, gwd.getMap(), northWalls, eastWalls);
+		Visualizer v = GridWorldVisualizer.getVisualizer(domain, gwd.getMap(), this.pitPos, northWalls, eastWalls);
 		EpisodeSequenceVisualizer evis = new EpisodeSequenceVisualizer(v, domain, sp, outputPath);
 	}
 	

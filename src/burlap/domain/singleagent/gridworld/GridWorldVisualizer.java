@@ -28,8 +28,20 @@ public class GridWorldVisualizer {
 	 * @param map the wall map matrix where 1s indicate a wall in that cell and 0s indicate it is clear of walls
 	 * @return a grid world domain visualizer
 	 */
-	public static Visualizer getVisualizer(Domain d, int [][] map,
+	public static Visualizer getVisualizer(Domain d, int [][] map, Position [] pitPos,
 									       boolean [][] northWalls, boolean [][] eastWalls){
+		
+		Visualizer v = new Visualizer();
+		
+		v.addStaticPainter(new MapPainter(d, map, pitPos, northWalls, eastWalls));
+		v.addObjectClassPainter(GridWorldDomain.CLASSLOCATION, new CellPainter(Color.blue, map));
+		v.addObjectClassPainter(GridWorldDomain.CLASSAGENT, new CellPainter(Color.red, map));
+		
+		return v;
+	}
+	
+	public static Visualizer getVisualizer(Domain d, int [][] map,
+		       boolean [][] northWalls, boolean [][] eastWalls){
 		
 		Visualizer v = new Visualizer();
 		
@@ -51,6 +63,7 @@ public class GridWorldVisualizer {
 		protected int 				dwidth;
 		protected int 				dheight;
 		protected int [][] 			map;
+		protected Position []		pitPos;
 		protected boolean [][]		northWalls;
 		protected boolean [][]		eastWalls;
 		
@@ -59,18 +72,29 @@ public class GridWorldVisualizer {
 		 * @param domain the domain of the grid world
 		 * @param map the wall map matrix where 1s indicate a wall in that cell and 0s indicate it is clear of walls
 		 */
-		public MapPainter(Domain domain, int [][] map,
+		public MapPainter(Domain domain, int [][] map, Position [] pitPos,
 				          boolean [][] northWalls, boolean [][] eastWalls) {
 			this.dwidth = map.length;
 			this.dheight = map[0].length;
 			this.map = map;
+			this.pitPos = pitPos;
 			this.northWalls = northWalls;
 			this.eastWalls = eastWalls;
 		}
 
+		public MapPainter(Domain domain, int [][] map,
+		          boolean [][] northWalls, boolean [][] eastWalls) {
+			this.dwidth = map.length;
+			this.dheight = map[0].length;
+			this.map = map;
+			this.pitPos = new Position [] {};
+			this.northWalls = northWalls;
+			this.eastWalls = eastWalls;
+		}
+		
 		@Override
 		public void paint(Graphics2D g2, State s, float cWidth, float cHeight) {
-			
+
 			//draw the walls; make them black
 			g2.setColor(Color.black);
 			
@@ -114,6 +138,14 @@ public class GridWorldVisualizer {
 						g2.fill(new Rectangle2D.Float(rx, ry, width/4.0f, height));
 					}
 				}	
+			}
+			
+			// Draw pits
+			g2.setColor(Color.gray);
+			for (Position pos : this.pitPos) {
+				float rx = pos.x*width;
+				float ry = cHeight - height - pos.y*height;
+				g2.fill(new Rectangle2D.Float(rx, ry, width, height));
 			}
 			
 		}
