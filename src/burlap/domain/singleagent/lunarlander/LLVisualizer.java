@@ -5,7 +5,6 @@ import java.awt.Graphics2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 
-import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.ObjectInstance;
 import burlap.oomdp.core.State;
 import burlap.oomdp.visualizer.ObjectPainter;
@@ -13,10 +12,20 @@ import burlap.oomdp.visualizer.Visualizer;
 
 
 
-
+/**
+ * Class for creating a 2D visualizer for the lunar lander domain. The agent is rendered as a red rectangle, obstacles as black rectangles,
+ * and the goal landing pad a blue rectangle. The agent's rectangle will be rotated according to the agent/landers orientation.
+ * @author James MacGlashan
+ *
+ */
 public class LLVisualizer {
 
-	
+
+	/**
+	 * Returns a visualizer for a lunar lander domain.
+	 * @param lld the specific lunar lander domain generator to visualize
+	 * @return a visualizer for a lunar lander domain.
+	 */
 	public static Visualizer getVisualizer(LunarLanderDomain lld){
 		
 		Visualizer v = new Visualizer();
@@ -30,7 +39,11 @@ public class LLVisualizer {
 	}
 	
 	
-	
+	/**
+	 * Object painter for a lunar lander agent class. Rendered as a red rectangle rotated 
+	 * @author James MacGlashan
+	 *
+	 */
 	public static class AgentPainter implements ObjectPainter{
 
 		protected LunarLanderDomain lld;
@@ -128,6 +141,11 @@ public class LLVisualizer {
 		
 	}
 	
+	/**
+	 * Object painter for obstacles of a lunar lander domain, rendered as black rectangles.
+	 * @author James MacGlashan
+	 *
+	 */
 	public static class ObstaclePainter implements ObjectPainter{
 
 		protected LunarLanderDomain lld;
@@ -175,6 +193,11 @@ public class LLVisualizer {
 	
 	
 	
+	/**
+	 * Object painter for landing pads of a lunar lander domain, rendered as blue rectangles.
+	 * @author James MacGlashan
+	 *
+	 */
 	public static class PadPainter implements ObjectPainter{
 
 		protected LunarLanderDomain lld;

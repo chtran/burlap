@@ -5,21 +5,29 @@ import java.util.List;
 
 import burlap.behavior.singleagent.EpisodeAnalysis;
 import burlap.behavior.singleagent.Policy;
+import burlap.behavior.singleagent.ValueFunctionInitialization;
 import burlap.behavior.singleagent.planning.ValueFunctionPlanner;
-import burlap.behavior.singleagent.planning.commonpolicies.BoltzmannQPolicy;
+import burlap.behavior.singleagent.planning.commonpolicies.GreedyQPolicy;
 import burlap.behavior.statehashing.StateHashFactory;
 import burlap.behavior.statehashing.StateHashTuple;
 import burlap.debugtools.DPrint;
 import burlap.oomdp.core.Domain;
 import burlap.oomdp.core.State;
 import burlap.oomdp.core.TerminalFunction;
+import burlap.oomdp.singleagent.GroundedAction;
 import burlap.oomdp.singleagent.RewardFunction;
 
 
 /**
- * Implementation of Real-time dynamic programming [1]. The planning algorithm uses a Q-value derived policy to sample rollouts in the domain. After a rollout
- * is complete, either from reaching a terminal state or taking longer the some set number of steps, the bellman update is performed on each state that was visited
- * in reverse. By default, a Boltzmann policy is used with temperature 0.1. You can change the rollout policy.
+ * Implementation of Real-time dynamic programming [1]. The planning algorithm uses a Q-value derived policy to sample rollouts in the domain. During
+ * each step of the rollout, the current state has its value updated using the Bellman operator and the action for the current state
+ * is selected using a greedy Q policy in which ties are randomly broken. Alternatively, this algorithm may be set to batch mode. In batch mode,
+ * all Bellman updates are stalled until rollout
+ * is complete, after which the Bellman update is performed on each state that was visited
+ * in reverse.
+ * <p/>
+ * To ensure optimality, an optimistic value function initialization should be used. However, RTDP excels when a good value function initialization
+ * (e.g., an admissible heuristic) can be provided.
  * 
  * 
  * 
@@ -53,26 +61,70 @@ public class RTDP extends ValueFunctionPlanner {
 	protected int						maxDepth;
 	
 	
+	/**
+	 * If set to use batch mode; Bellman updates will be stalled until a rollout is complete and then run in reverse.
+	 */
+	protected boolean					useBatch = false;
+	
+	
+	
 	
 	/**
-	 * Initializes the planner.
+	 * Initializes the planner. The value function will be initialized to vInit by default everywhere and will use a greedy policy with random tie breaks
+	 * for performing rollouts. Use the {@link setValueFunctionInitialization(ValueFunctionInitialization)} method
+	 * to change the value function initialization and the {@link setRollOutPolicy(Policy} method to change the rollout policy to something else. vInit
+	 * should be set to something optimistic like VMax to ensure convergence.
 	 * @param domain the domain in which to plan
 	 * @param rf the reward function
 	 * @param tf the terminal state function
 	 * @param gamma the discount factor
 	 * @param hashingFactory the state hashing factor to use
+	 * @param vInit the value to the the value function for all states will be initialized
 	 * @param numRollouts the number of rollouts to perform when planning is started.
-	 * @param maxDelta when the maximum change in the value function from a rollout is smaller than this value, VI will terminate.
+	 * @param maxDelta when the maximum change in the value function from a rollout is smaller than this value, planning will terminate.
 	 * @param maxDepth the maximum depth/length of a rollout before it is terminated and Bellman updates are performed.
 	 */
-	public RTDP(Domain domain, RewardFunction rf, TerminalFunction tf, double gamma, StateHashFactory hashingFactory, int numRollouts, double maxDelta, int maxDepth){
+	public RTDP(Domain domain, RewardFunction rf, TerminalFunction tf, double gamma, StateHashFactory hashingFactory, double vInit, int numRollouts, double maxDelta, int maxDepth){
 		
 		this.VFPInit(domain, rf, tf, gamma, hashingFactory);
 		
 		this.numRollouts = numRollouts;
 		this.maxDelta = maxDelta;
 		this.maxDepth = maxDepth;
-		this.rollOutPolicy = new BoltzmannQPolicy(this, 0.1);
+		this.rollOutPolicy = new GreedyQPolicy(this);
+		
+		this.valueInitializer = new ValueFunctionInitialization.ConstantValueFunctionInitialization(vInit);
+		
+	}
+	
+	
+	
+	
+	/**
+	 * Initializes the planner. The value function will be initialized to vInit by default everywhere and will use a greedy policy with random tie breaks
+	 * for performing rollouts. Use the {@link setValueFunctionInitialization(ValueFunctionInitialization)} method
+	 * to change the value function initialization and the {@link setRollOutPolicy(Policy} method to change the rollout policy to something else. vInit
+	 * should be set to something optimistic like VMax to ensure convergence.
+	 * @param domain the domain in which to plan
+	 * @param rf the reward function
+	 * @param tf the terminal state function
+	 * @param gamma the discount factor
+	 * @param hashingFactory the state hashing factor to use
+	 * @param vInit the object which defines how the value function will be initialized for each individual state.
+	 * @param numRollouts the number of rollouts to perform when planning is started.
+	 * @param maxDelta when the maximum change in the value function from a rollout is smaller than this value, planning will terminate.
+	 * @param maxDepth the maximum depth/length of a rollout before it is terminated and Bellman updates are performed.
+	 */
+	public RTDP(Domain domain, RewardFunction rf, TerminalFunction tf, double gamma, StateHashFactory hashingFactory, ValueFunctionInitialization vInit, int numRollouts, double maxDelta, int maxDepth){
+		
+		this.VFPInit(domain, rf, tf, gamma, hashingFactory);
+		
+		this.numRollouts = numRollouts;
+		this.maxDelta = maxDelta;
+		this.maxDepth = maxDepth;
+		this.rollOutPolicy = new GreedyQPolicy(this);
+		
+		this.valueInitializer = vInit;
 		
 	}
 	
@@ -96,7 +148,7 @@ public class RTDP extends ValueFunctionPlanner {
 	
 	/**
 	 * Sets the rollout policy to use.
-	 * @param p
+	 * @param p the rollout policy to use
 	 */
 	public void setRollOutPolicy(Policy p){
 		this.rollOutPolicy = p;
@@ -110,8 +162,75 @@ public class RTDP extends ValueFunctionPlanner {
 		this.maxDepth = d;
 	}
 	
+	/**
+	 * When batch mode is set, Bellman updates will be stalled until a roll out is complete and then run in reverse.
+	 * @param useBatch whether to use batchmode RTDP or not.
+	 */
+	public void toggleBatchMode(boolean useBatch){
+		this.useBatch = useBatch;
+	}
+	
 	@Override
 	public void planFromState(State initialState) {
+		
+		if(!useBatch){
+			this.normalRTDP(initialState);
+		}
+		else{
+			this.batchRTDP(initialState);
+		}
+
+	}
+	
+
+
+	
+	/**
+	 * Runs normal RTDP in which bellman updates are performed 
+	 * @param initiaState the initial state from which to plan
+	 */
+	protected void normalRTDP(State initialState){
+		
+		int totalStates = 0;
+		for(int i = 0; i < numRollouts; i++){
+			
+			State curState = initialState;
+			int nSteps = 0;
+			double delta = 0;
+			while(!this.tf.isTerminal(curState) && nSteps < this.maxDepth){
+				
+				StateHashTuple sh = this.hashingFactory.hashState(curState);
+				
+				//update this state's value
+				double curV = this.value(sh);
+				double nV = this.performBellmanUpdateOn(sh);
+				delta = Math.max(Math.abs(nV - curV), delta); 
+				
+				//select an action and take it
+				GroundedAction ga = this.rollOutPolicy.getAction(curState);
+				curState = ga.executeIn(curState);
+				nSteps++;
+			}
+			
+			totalStates += nSteps;
+			
+			DPrint.cl(debugCode, "Pass: " + i + "; Num states: " + nSteps + " (total: " + totalStates + ")");
+			
+			if(delta < this.maxDelta){
+				break;
+			}
+			
+			
+		}
+		
+	}
+	
+	
+	/**
+	 * Performs Bellman updates only after a rollout is complete and in reverse order
+	 * @param initialState the initial state from which to plan
+	 */
+	protected void batchRTDP(State initialState){
 		
 		int totalStates = 0;
 		
@@ -131,9 +250,9 @@ public class RTDP extends ValueFunctionPlanner {
 				break;
 			}
 		}
-
+		
+		
 	}
-	
 	
 	
 	/**
@@ -146,18 +265,6 @@ public class RTDP extends ValueFunctionPlanner {
 		double delta = 0.;
 		for(StateHashTuple sh : states){
 			
-			if(mapToStateIndex.get(sh) == null){
-				//not stored yet
-				mapToStateIndex.put(sh, sh);
-			}
-			
-			if(tf.isTerminal(sh.s)){
-				//no need to compute this state; always zero because it is terminal and agent cannot behave here
-				valueFunction.put(sh, 0.);
-				continue;
-			}
-			
-			
 			double v = this.value(sh);
 			
 			double maxQ = this.performBellmanUpdateOn(sh);
@@ -168,5 +275,6 @@ public class RTDP extends ValueFunctionPlanner {
 		return delta;
 		
 	}
+	
 
 }

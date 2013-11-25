@@ -2,7 +2,6 @@ package burlap.behavior.singleagent.planning.commonpolicies;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import javax.management.RuntimeErrorException;
 
@@ -99,6 +98,12 @@ public class BoltzmannQPolicy extends Policy implements PlannerDerivedPolicy{
 		
 		this.qplanner = (QComputablePlanner)planner;
 		
+	}
+
+
+	@Override
+	public boolean isDefinedFor(State s) {
+		return true; //can always find q-values with default value
 	}
 	
 
