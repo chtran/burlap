@@ -295,28 +295,10 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 			GroundedAction action = learningPolicy.getAction(curState.s);
 			StateHashTuple nextState = this.stateHash(action.executeIn(curState.s));
 			
-			//manage option specifics
-			double r;
-			double discount;
-			if(action.action.isPrimitive()){
-				r = rf.reward(curState.s, action, nextState.s);
-				eStepCounter++;
-				discount = this.gamma;
-				ea.recordTransitionTo(nextState.s, action, r);
-			}
-			else{
-				Option o = (Option)action.action;
-				r = o.getLastCumulativeReward();
-				int n = o.getLastNumSteps();
-				discount = Math.pow(this.gamma, n);
-				eStepCounter += n;
-				if(this.shouldDecomposeOptions){
-					ea.appendAndMergeEpisodeAnalysis(o.getLastExecutionResults());
-				}
-				else{
-					ea.recordTransitionTo(nextState.s, action, r);
-				}
-			}
+			double r = rf.reward(curState.s, action, nextState.s);
+			double discount = this.gamma;
+			eStepCounter++;
+			ea.recordTransitionTo(nextState.s, action, r);
 			
 			if (!pastExperience.containsKey(curState)) {
 				pastExperience.put(curState, new RmaxMemoryNode());

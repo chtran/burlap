@@ -245,8 +245,8 @@ public class SmallGW {
 		}
 		//evaluateGoNorthPolicy();
 		//evaluateQLearningPolicy();
-		evaluateQwithShapingLearningPolicy();
-		//evaluateRmaxLearningPolicy();
+		//evaluateQwithShapingLearningPolicy();
+		evaluateRmaxLearningPolicy();
 		//evaluateRmaxWithShapingLearningPolicy();
 	}
 	
