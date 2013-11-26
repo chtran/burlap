@@ -16,14 +16,16 @@ public class RmaxMemoryNode {
 	private HashSet<GroundedAction>								updatedActions;
 	private Map<GroundedAction, Map<StateHashTuple, Double>>	estTransition;
 	private Map<GroundedAction, Double>							estRewards;
+	private int													m;
 
-	public RmaxMemoryNode() {
+	public RmaxMemoryNode(int m) {
 		this.pastRewards = new HashMap<GroundedAction, Double>();
 		this.pastSAS = new HashMap<GroundedAction, Map<StateHashTuple,Integer>>();
 		this.pastSA = new HashMap<GroundedAction, Integer>();
 		this.updatedActions = new HashSet<GroundedAction>();
 		this.estTransition = new HashMap<GroundedAction, Map<StateHashTuple, Double>>();
 		this.estRewards = new HashMap<GroundedAction, Double>();
+		this.m = m;
 	}
 	
 	public Set<GroundedAction> getGroundedActions() {
@@ -74,7 +76,7 @@ public class RmaxMemoryNode {
 		this.pastSAS.put(action, nSASMap);
 	}
 	
-	public boolean hasEnoughExperience(GroundedAction action, int m) {
+	public boolean hasEnoughExperience(GroundedAction action) {
 		if (!this.pastSA.containsKey(action)) {
 			return false;
 		} else {
@@ -82,7 +84,7 @@ public class RmaxMemoryNode {
 		}
 	}
 	
-	public void updateEstimations(GroundedAction action, int m) {
+	public void updateEstimations(GroundedAction action) {
 		if (this.updatedActions.contains(action)) return;
 		
 		this.updatedActions.add(action);

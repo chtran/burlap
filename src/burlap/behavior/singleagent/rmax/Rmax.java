@@ -301,15 +301,15 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 			ea.recordTransitionTo(nextState.s, action, r);
 			
 			if (!pastExperience.containsKey(curState)) {
-				pastExperience.put(curState, new RmaxMemoryNode());
+				pastExperience.put(curState, new RmaxMemoryNode(m));
 			}			
 			RmaxMemoryNode memoryNode = pastExperience.get(curState);
-			if (!memoryNode.hasEnoughExperience(action,m)) {
+			if (!memoryNode.hasEnoughExperience(action)) {
 				memoryNode.addExperience(action,nextState,r);
 			}
 			
-			if (memoryNode.hasEnoughExperience(action,m)) {
-				memoryNode.updateEstimations(action, m);
+			if (memoryNode.hasEnoughExperience(action)) {
+				memoryNode.updateEstimations(action);
 				RmaxMemoryNode					node;
 				Map<StateHashTuple, Double>		transitionDist;
 				double sum_t_q;
@@ -318,7 +318,7 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 					for (StateHashTuple state: pastExperience.keySet()) { // s
 						node = pastExperience.get(state);
 						for(GroundedAction a : node.getGroundedActions()) { // a
-							if (node.hasEnoughExperience(a, m)) {
+							if (node.hasEnoughExperience(a)) {
 								sum_t_q = 0.;
 								transitionDist = node.getEstTransitionDist(a);
 								for (StateHashTuple s_prime : transitionDist.keySet()) { // s'
