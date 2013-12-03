@@ -109,8 +109,7 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 
 		this.maxEpisodeSize = maxEpisodeSize;
 		
-		//this.learningPolicy = new GreedyQPolicy(this);
-		this.learningPolicy = new EpsilonGreedy(this, 0.1);
+		this.learningPolicy = new GreedyQPolicy(this);
 		
 		this.m = m;
 	}
