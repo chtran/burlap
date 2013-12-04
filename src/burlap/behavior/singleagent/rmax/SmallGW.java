@@ -59,7 +59,7 @@ public class SmallGW {
 	DiscreteStateHashFactory	hashingFactory;
 	StateParser					sp;
 	int 						numberOfEpisodes = 2000;
-	int 						maxEpisodeSize = 10000;
+	int 						maxEpisodeSize = 1000;
 	Boolean						enablePositionReset = true;
 	Boolean						visualizeEpisodes = false;
 	// Record data to outputPath
@@ -246,8 +246,8 @@ public class SmallGW {
 		//evaluateGoNorthPolicy();
 		//evaluateQLearningPolicy();
 		//evaluateQwithShapingLearningPolicy();
-		evaluateRmaxLearningPolicy();
-		//evaluateRmaxWithShapingLearningPolicy();
+		//evaluateRmaxLearningPolicy();
+		evaluateRmaxWithShapingLearningPolicy();
 	}
 	
 	public void visualizeEpisode(String outputPath){
@@ -327,8 +327,9 @@ public class SmallGW {
 	}
 	
 	public void evaluateRmaxWithShapingLearningPolicy() {
-		Rmax rmaxplanner = new Rmax(domain, shapedRF, tf,
+		RmaxWithShaping rmaxplanner = new RmaxWithShaping(domain, shapedRF, tf,
 				discountFactor, hashingFactory, goalValue, maxEpisodeSize, m);
+		rmaxplanner.setGridWorldPotential(this.gwp);
 		rmaxplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
 		rmaxplanner.setNumEpisodesToStore(numberOfEpisodes);
 		rmaxplanner.planFromState(initialState);
@@ -361,8 +362,8 @@ public class SmallGW {
 	public static void main(String[] args) {
 		//SmallGW myWorld = new SmallGW();	
 		//myWorld.visualExplorer();
-		//int numExperiments = 40;
-		int numExperiments = 1;
+		int numExperiments = 40;
+		//int numExperiments = 1;
 		for (int ii = 1; ii <= numExperiments; ii++) {
 			System.out.println("Run " + ii + " of " + numExperiments);
 			SmallGW myWorld = new SmallGW();

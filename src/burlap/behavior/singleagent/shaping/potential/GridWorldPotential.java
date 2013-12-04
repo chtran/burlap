@@ -25,7 +25,7 @@ public class GridWorldPotential implements PotentialFunction {
 		ObjectInstance agent = s.getObjectsOfTrueClass(GridWorldDomain.CLASSAGENT).get(0);
 		int x = agent.getDiscValForAttribute(GridWorldDomain.ATTX);
 		int y = agent.getDiscValForAttribute(GridWorldDomain.ATTY);
-		return stepCost * domain.getDistance(new Position(x,y), this.goal) / rho + goalValue;
+		return (stepCost * domain.getDistance(new Position(x,y), this.goal) / rho) + goalValue;
 	}
 
 }

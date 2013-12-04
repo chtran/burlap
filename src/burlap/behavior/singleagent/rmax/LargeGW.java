@@ -59,7 +59,7 @@ public class LargeGW {
 	DiscreteStateHashFactory	hashingFactory;
 	StateParser					sp;
 	int 						numberOfEpisodes = 1500;
-	int 						maxEpisodeSize = 10000;
+	int 						maxEpisodeSize = 1000;
 	Boolean						enablePositionReset = false;
 	Boolean						visualizeEpisodes = false;
 	// Record data to outputPath
@@ -444,8 +444,9 @@ public class LargeGW {
 	}
 	
 	public void evaluateRmaxWithShapingLearningPolicy() {
-		Rmax rmaxplanner = new Rmax(domain, shapedRF, tf,
+		RmaxWithShaping rmaxplanner = new RmaxWithShaping(domain, shapedRF, tf,
 				discountFactor, hashingFactory, goalValue, maxEpisodeSize, m);
+		rmaxplanner.setGridWorldPotential(this.gwp);
 		rmaxplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
 		rmaxplanner.setNumEpisodesToStore(numberOfEpisodes);
 		rmaxplanner.planFromState(initialState);
@@ -478,7 +479,7 @@ public class LargeGW {
 	public static void main(String[] args) {
 		//LargeGW myWorld = new LargeGW();	
 		//myWorld.visualExplorer();
-		int numExperiments = 1;
+		int numExperiments = 40;
 		for (int ii = 1; ii <= numExperiments; ii++) {
 			System.out.println("Run " + ii + " of " + numExperiments);
 			LargeGW myWorld = new LargeGW();

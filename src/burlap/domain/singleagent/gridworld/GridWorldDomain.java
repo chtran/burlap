@@ -145,8 +145,7 @@ public class GridWorldDomain implements DomainGenerator {
 	int													initialX = 0;
 	int													initialY = 0;
 	Boolean												enablePositionReset = false;
-	//Map<Tuple<Position,Position>, Integer>				distance;
-	int[][]												distance;
+	double[][]											distance;
 	
 	
 	/**
@@ -595,7 +594,7 @@ public class GridWorldDomain implements DomainGenerator {
 	
 	public void populateDistance() {
 		int num_states = this.width * this.height;
-		this.distance = new int[num_states][num_states];
+		this.distance = new double[num_states][num_states];
 		for (int from_x = 0; from_x < this.width; from_x ++) {
 			for (int from_y = 0; from_y < this.height; from_y ++) {
 				this.distance[from_x*height+from_y] = getDistanceMatrix(from_x, from_y);
@@ -604,28 +603,29 @@ public class GridWorldDomain implements DomainGenerator {
 		
 	}
 	
-	public int getDistance(Position from, Position to) {
-		return distance[from.x*height + from.y][to.x*height + to.y];
+	public double getDistance(Position from, Position to) {
+		//return distance[from.x*height + from.y][to.x*height + to.y];
+		return Math.abs(from.x-to.x)+Math.abs(from.y-to.y);
 	}
 	
-	private int[] getDistanceMatrix(int from_x, int from_y) {
-		int[] toReturn = new int[width * height];
+	private double[] getDistanceMatrix(int from_x, int from_y) {
+		double[] toReturn = new double[width * height];
 		//int[][] states = new int[width][height];
 		for (int i = 0; i < width*height; i++) {
-			toReturn[i] = Integer.MAX_VALUE;
+			toReturn[i] = Double.MAX_VALUE;
 		}
-		toReturn[from_x*height + from_y] = 0;
+		toReturn[from_x*height + from_y] = 0.0;
 		LinkedList<Position> justExplored = new LinkedList<Position>();
 		justExplored.add(new Position(from_x, from_y));
 		String[] actions = new String[] {ACTIONNORTH, ACTIONSOUTH, ACTIONEAST, ACTIONWEST};
 		while (!justExplored.isEmpty()) {
 			Position current = justExplored.removeFirst();
-			int current_distance = toReturn[current.x*height + current.y];
+			double current_distance = toReturn[current.x*height + current.y];
 			for (String action: actions) {
 				Position dest = getDest(current, action);
 				if (dest != null) {
-					if (toReturn[dest.x*height + dest.y]==Integer.MAX_VALUE) {
-						toReturn[dest.x*height + dest.y] = current_distance+1;
+					if (toReturn[dest.x*height + dest.y]==Double.MAX_VALUE) {
+						toReturn[dest.x*height + dest.y] = current_distance+1.0;
 						justExplored.addLast(dest);
 					}
 				}
@@ -675,7 +675,7 @@ public class GridWorldDomain implements DomainGenerator {
 	}
 	
 	public void printDistanceFrom(int from_x, int from_y) {
-		int[] distances = this.distance[from_x*height + from_y];
+		double[] distances = this.distance[from_x*height + from_y];
 		for (int y = height-1; y >= 0; y--) {
 			for (int x = 0; x < width; x++) {
 				System.out.printf("%d ",distances[x*height+y]);

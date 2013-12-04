@@ -40,6 +40,11 @@ public class RmaxMemoryNode {
 		return this.estRewards;
 	}
 	
+	public boolean runVI(GroundedAction ga) {
+		//return true;
+		return !this.updatedActions.contains(ga);
+	}
+	
 	public void addExperience(GroundedAction action, StateHashTuple resultState, double reward) {
 		//Update rewards
 		double r;

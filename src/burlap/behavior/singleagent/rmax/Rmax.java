@@ -171,16 +171,25 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		}
 		
 		double maxR = Double.NEGATIVE_INFINITY;
+		StateHashTuple maxRsht = null;
+		GroundedAction maxRga = null;
 		System.out.println("Experienced Rewards");
 		for (StateHashTuple sht : pastExperience.keySet()) {
 			printRmaxDebugPos(sht);
 			for (GroundedAction ga : pastExperience.get(sht).getEstRewards().keySet()) {
 				System.out.printf("%.2f ", pastExperience.get(sht).getEstRewards().get(ga));
-				maxR = Math.max(maxR, pastExperience.get(sht).getEstRewards().get(ga));
+				//maxR = Math.max(maxR, pastExperience.get(sht).getEstRewards().get(ga));
+				if (maxR < pastExperience.get(sht).getEstRewards().get(ga)) {
+					maxR = pastExperience.get(sht).getEstRewards().get(ga);
+					maxRsht = sht;
+					maxRga = ga;
+				}
 			}
 			System.out.println("");
 		}
 		System.out.println("Max Q: " + maxQ + "    " + "max R: " + maxR);
+		printRmaxDebugPos(maxRsht);
+		System.out.println("action " + maxRga);
 		System.out.println("Last discounted return: " + 
 				getLastLearningEpisode().getDiscountedReturn(this.gamma));
 	}
@@ -274,6 +283,9 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 	 * @return the maximum Q-value in the hashed stated.
 	 */
 	protected double getMaxQ(StateHashTuple s){
+		if(this.tf.isTerminal(s.s)){
+			return 0.;
+		}
 		List <QValue> qs = this.getQs(s);
 		double max = Double.NEGATIVE_INFINITY;
 		for(QValue q : qs){
@@ -297,6 +309,8 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 			double r = rf.reward(curState.s, action, nextState.s);
 			double discount = this.gamma;
 			eStepCounter++;
+			//System.out.println(eStepCounter);
+
 			ea.recordTransitionTo(nextState.s, action, r);
 			
 			if (!pastExperience.containsKey(curState)) {
@@ -307,29 +321,44 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 				memoryNode.addExperience(action,nextState,r);
 			}
 			
-			if (memoryNode.hasEnoughExperience(action)) {
+			if (memoryNode.hasEnoughExperience(action) && memoryNode.runVI(action)) {
 				memoryNode.updateEstimations(action);
 				RmaxMemoryNode					node;
 				Map<StateHashTuple, Double>		transitionDist;
 				double sum_t_q;
 				// update q values
-				for (int i = 0; i < 1; ++i) {
+				double qEps = 0.0001;
+				//for (int i = 0; i < 1; ++i) {
+				double absDelQ;
+				int i=0;
+				do {
+					i++;
+					absDelQ = Double.NEGATIVE_INFINITY;
 					for (StateHashTuple state: pastExperience.keySet()) { // s
 						node = pastExperience.get(state);
+
 						for(GroundedAction a : node.getGroundedActions()) { // a
+//							if(this.tf.isTerminal(state.s)){
+//								this.getQ(state, a).q = 0;
+//								continue;
+//							}
 							if (node.hasEnoughExperience(a)) {
 								sum_t_q = 0.;
 								transitionDist = node.getEstTransitionDist(a);
 								for (StateHashTuple s_prime : transitionDist.keySet()) { // s'
+									
 									sum_t_q += transitionDist.get(s_prime) * this.getMaxQ(s_prime);
 								}
 								sum_t_q *= discount;
 								sum_t_q += node.getEstReward(a);
+								absDelQ = Math.max(absDelQ,
+										Math.abs(this.getQ(state, a).q - sum_t_q));
 								this.getQ(state, a).q = sum_t_q;
 							}
 						}
 					}
-				}
+				} while (absDelQ > qEps);
+				System.out.println("VI iterations: "+i);
 			}
 			
 			//move on
