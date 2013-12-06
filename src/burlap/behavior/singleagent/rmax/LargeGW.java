@@ -46,6 +46,9 @@ public class LargeGW {
 	RewardFunction				shapedRF;
 	GridWorldPotential			gwp;
 	int							m = 5; // rmax
+	double						initial_temp = 100.0; // artdp
+	double						min_temp = 0.01;
+	double						temp_decay_constant = 0.996;
 	double						goalValue = 1.;
 	double						rho = 0.8;
 	double						discountFactor = 1.;
@@ -363,8 +366,10 @@ public class LargeGW {
 		//evaluateGoNorthPolicy();
 		//evaluateQLearningPolicy();
 		//evaluateQwithShapingLearningPolicy();
-		evaluateRmaxLearningPolicy();
+		//evaluateRmaxLearningPolicy();
 		//evaluateRmaxWithShapingLearningPolicy();
+		evaluateARTDPLearningPolicy();
+		//evaluateARTDPWithHeuristicLearningPolicy
 	}
 	
 	public void visualizeEpisode(String outputPath){
@@ -456,6 +461,39 @@ public class LargeGW {
 		if (recordData) {
 			outputEpisodeData(rmaxplanner.getAllStoredLearningEpisodes(),
 							"rmaxs_results.txt");
+		}
+	}
+	
+	public void evaluateARTDPLearningPolicy() {
+		ARTDP artdpplanner = new ARTDP(domain, rf, tf,
+				discountFactor, hashingFactory, goalValue, maxEpisodeSize, 1,
+				initial_temp, min_temp, temp_decay_constant);
+		artdpplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
+		artdpplanner.setNumEpisodesToStore(numberOfEpisodes);
+		artdpplanner.planFromState(initialState);
+		
+		artdpplanner.printRmaxDebug();
+		
+		if (recordData) {
+			outputEpisodeData(artdpplanner.getAllStoredLearningEpisodes(),
+							"artdp_results.txt");
+		}
+	}
+	
+	public void evaluateARTDPWithHeuristicLearningPolicy() {
+		ARTDPHeuristic artdpplanner = new ARTDPHeuristic(domain, rf, tf,
+				discountFactor, hashingFactory, goalValue, maxEpisodeSize, 1,
+				initial_temp, min_temp, temp_decay_constant);
+		artdpplanner.setGridWorldPotential(this.gwp);
+		artdpplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
+		artdpplanner.setNumEpisodesToStore(numberOfEpisodes);
+		artdpplanner.planFromState(initialState);
+		
+		artdpplanner.printRmaxDebug();
+		
+		if (recordData) {
+			outputEpisodeData(artdpplanner.getAllStoredLearningEpisodes(),
+							"artdph_results.txt");
 		}
 	}
 	

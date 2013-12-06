@@ -90,11 +90,10 @@ public class RmaxMemoryNode {
 	}
 	
 	public void updateEstimations(GroundedAction action) {
-		if (this.updatedActions.contains(action)) return;
 		
 		this.updatedActions.add(action);
 		double totalReward = this.pastRewards.get(action);
-		this.estRewards.put(action, totalReward/(double)m);
+		this.estRewards.put(action, totalReward/(double)this.pastSA.get(action));
 		
 		Map<StateHashTuple, Integer> nSASMap = this.pastSAS.get(action);
 		Map<StateHashTuple,Double> transitionMap = new HashMap<StateHashTuple, Double>();
@@ -109,6 +108,11 @@ public class RmaxMemoryNode {
 			transitionMap.put(sh, ((double)nSAS)/(double)nSA);
 		}
 		this.estTransition.put(action, transitionMap);
+	}
+	
+	public void updateRMaxEstimations(GroundedAction action) {
+		if (this.updatedActions.contains(action)) return;
+		updateEstimations(action);
 	}
 	
 	public double getEstReward(GroundedAction action) {
