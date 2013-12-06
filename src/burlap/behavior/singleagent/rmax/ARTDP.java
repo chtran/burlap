@@ -1,5 +1,6 @@
 package burlap.behavior.singleagent.rmax;
 
+import java.util.LinkedList;
 import java.util.Map;
 
 import burlap.behavior.singleagent.EpisodeAnalysis;
@@ -18,6 +19,11 @@ public class ARTDP extends Rmax {
 	protected double min_temp;
 	protected double temp_decay_constant;
 	
+	/**
+	 * Keep track of the end reward of each episode
+	 */
+	protected LinkedList<Double> 									finalRewards;
+	
 	public ARTDP(Domain domain, RewardFunction rf, TerminalFunction tf,
 			double gamma, StateHashFactory hashingFactory, double goalReward,
 			int maxEpisodeSize, int m,
@@ -33,17 +39,28 @@ public class ARTDP extends Rmax {
 		this.temp_decay_constant = temp_decay_constant;
 	}
 	
+	public void setFinalRewardsList(LinkedList <Double> finalRewards) {
+		this.finalRewards = finalRewards;
+	}
+	
 	@Override
 	public EpisodeAnalysis runLearningEpisodeFrom(State initialState) {
 		EpisodeAnalysis ea		= new EpisodeAnalysis(initialState);
 		StateHashTuple curState	= this.stateHash(initialState);
 		eStepCounter			= 0;
 		
+		double			r				=	0.0;
+		GroundedAction	action			=	null;
+		StateHashTuple	nextState		=	null;
+		double			stepDiscount	=	1.0;
+		double			totalR			=	0.0;
 		while(!tf.isTerminal(curState.s) && eStepCounter < maxEpisodeSize){
-			GroundedAction action = learningPolicy.getAction(curState.s);
-			StateHashTuple nextState = this.stateHash(action.executeIn(curState.s));
+			action = learningPolicy.getAction(curState.s);
+			nextState = this.stateHash(action.executeIn(curState.s));
 			
-			double r = rf.reward(curState.s, action, nextState.s);
+			r = rf.reward(curState.s, action, nextState.s);
+			totalR += r*stepDiscount;
+			stepDiscount *= gamma;
 			eStepCounter++;
 
 			ea.recordTransitionTo(nextState.s, action, r);
@@ -74,6 +91,8 @@ public class ARTDP extends Rmax {
 			//Update temperature
 			((BoltzmannQPolicy) learningPolicy).decay();
 		}
+		
+		finalRewards.add(totalR);
 		
 		if(episodeHistory.size() >= numEpisodesToStore){
 			episodeHistory.poll();

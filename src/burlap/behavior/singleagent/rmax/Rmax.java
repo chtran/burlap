@@ -81,6 +81,12 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 	protected double												goalReward;
 	protected ValueFunctionInitialization							qInitFunction;
 	protected int													m;
+	
+	/**
+	 * Keep track of the end reward of each episode
+	 */
+	protected LinkedList<Double> 									finalRewards;
+	
 	/**
 	 * Initialize Rmax()
 	 * @param domain the domain in which to learn
@@ -114,6 +120,9 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		this.m = m;
 	}
 	
+	public void setFinalRewardsList(LinkedList <Double> finalRewards) {
+		this.finalRewards = finalRewards;
+	}
 	
 	/**
 	 * Sets the maximum number of episodes that will be performed when the {@link planFromState(State)} method is called.
@@ -303,11 +312,18 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		StateHashTuple curState	= this.stateHash(initialState);
 		eStepCounter			= 0;
 		
+		double			r				=	0.0;
+		GroundedAction	action			=	null;
+		StateHashTuple	nextState		=	null;
+		double			stepDiscount	=	1.0;
+		double			totalR			=	0.0;
 		while(!tf.isTerminal(curState.s) && eStepCounter < maxEpisodeSize){
-			GroundedAction action = learningPolicy.getAction(curState.s);
-			StateHashTuple nextState = this.stateHash(action.executeIn(curState.s));
+			action = learningPolicy.getAction(curState.s);
+			nextState = this.stateHash(action.executeIn(curState.s));
 			
-			double r = rf.reward(curState.s, action, nextState.s);
+			r = rf.reward(curState.s, action, nextState.s);
+			totalR += r*stepDiscount;
+			stepDiscount *= gamma;
 			eStepCounter++;
 
 			ea.recordTransitionTo(nextState.s, action, r);
@@ -328,6 +344,8 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 			//move on
 			curState = nextState;
 		}
+		
+		finalRewards.add(totalR);
 		
 		if(episodeHistory.size() >= numEpisodesToStore){
 			episodeHistory.poll();

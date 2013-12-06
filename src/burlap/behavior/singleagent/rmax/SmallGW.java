@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import burlap.behavior.singleagent.EpisodeAnalysis;
@@ -251,8 +252,8 @@ public class SmallGW {
 		//evaluateQwithShapingLearningPolicy();
 		//evaluateRmaxLearningPolicy();
 		//evaluateRmaxWithShapingLearningPolicy();
-		evaluateARTDPLearningPolicy();
-		//evaluateARTDPWithHeuristicLearningPolicy();
+		//evaluateARTDPLearningPolicy();
+		evaluateARTDPWithHeuristicLearningPolicy();
 	}
 	
 	public void visualizeEpisode(String outputPath){
@@ -317,65 +318,73 @@ public class SmallGW {
 	}
 	
 	public void evaluateRmaxLearningPolicy() {
+		LinkedList <Double> finalRewards = new LinkedList <Double> ();
 		Rmax rmaxplanner = new Rmax(domain, rf, tf,
 				discountFactor, hashingFactory, goalValue, maxEpisodeSize, m);
+		rmaxplanner.setFinalRewardsList(finalRewards);
 		rmaxplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
-		rmaxplanner.setNumEpisodesToStore(numberOfEpisodes);
+		//rmaxplanner.setNumEpisodesToStore(numberOfEpisodes);
 		rmaxplanner.planFromState(initialState);
 		
 		rmaxplanner.printRmaxDebug();
 		
 		if (recordData) {
-			outputEpisodeData(rmaxplanner.getAllStoredLearningEpisodes(),
+			outputEpisodeData(finalRewards,
 							"rmax_results.txt");
 		}
 	}
 	
 	public void evaluateRmaxWithShapingLearningPolicy() {
+		LinkedList <Double> finalRewards = new LinkedList <Double> ();
 		RmaxWithShaping rmaxplanner = new RmaxWithShaping(domain, shapedRF, tf,
 				discountFactor, hashingFactory, goalValue, maxEpisodeSize, m);
+		rmaxplanner.setFinalRewardsList(finalRewards);
 		rmaxplanner.setGridWorldPotential(this.gwp);
 		rmaxplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
-		rmaxplanner.setNumEpisodesToStore(numberOfEpisodes);
+		//rmaxplanner.setNumEpisodesToStore(numberOfEpisodes);
 		rmaxplanner.planFromState(initialState);
 		
 		rmaxplanner.printRmaxDebug();
 		
 		if (recordData) {
-			outputEpisodeData(rmaxplanner.getAllStoredLearningEpisodes(),
+			outputEpisodeData(finalRewards,
 							"rmaxs_results.txt");
 		}
 	}
 	
 	public void evaluateARTDPLearningPolicy() {
+		LinkedList <Double> finalRewards = new LinkedList <Double> ();
 		ARTDP artdpplanner = new ARTDP(domain, rf, tf,
 				discountFactor, hashingFactory, goalValue, maxEpisodeSize, 1,
 				initial_temp, min_temp, temp_decay_constant);
+		artdpplanner.setFinalRewardsList(finalRewards);
 		artdpplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
-		artdpplanner.setNumEpisodesToStore(numberOfEpisodes);
+		//artdpplanner.setNumEpisodesToStore(numberOfEpisodes);
 		artdpplanner.planFromState(initialState);
 		
 		artdpplanner.printRmaxDebug();
 		
 		if (recordData) {
-			outputEpisodeData(artdpplanner.getAllStoredLearningEpisodes(),
+			outputEpisodeData(finalRewards,
 							"artdp_results.txt");
 		}
 	}
 	
 	public void evaluateARTDPWithHeuristicLearningPolicy() {
+		LinkedList <Double> finalRewards = new LinkedList <Double> ();
 		ARTDPHeuristic artdpplanner = new ARTDPHeuristic(domain, rf, tf,
 				discountFactor, hashingFactory, goalValue, maxEpisodeSize, 1,
 				initial_temp, min_temp, temp_decay_constant);
+		artdpplanner.setFinalRewardsList(finalRewards);
 		artdpplanner.setGridWorldPotential(this.gwp);
 		artdpplanner.setMaximumEpisodesForPlanning(numberOfEpisodes);
-		artdpplanner.setNumEpisodesToStore(numberOfEpisodes);
+		//artdpplanner.setNumEpisodesToStore(numberOfEpisodes);
 		artdpplanner.planFromState(initialState);
 		
 		artdpplanner.printRmaxDebug();
 		
 		if (recordData) {
-			outputEpisodeData(artdpplanner.getAllStoredLearningEpisodes(),
+			outputEpisodeData(finalRewards,
 							"artdph_results.txt");
 		}
 	}
@@ -387,6 +396,20 @@ public class SmallGW {
 							new FileWriter(outputPath + filename, true)));
 			for (EpisodeAnalysis ea: episodes) {
 				pw.println(String.valueOf(ea.getDiscountedReturn(discountFactor)));
+			}
+			pw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void outputEpisodeData(LinkedList <Double> finalRewards, String filename) {
+		try {
+			PrintWriter pw = new PrintWriter(
+					new BufferedWriter(
+							new FileWriter(outputPath + filename, true)));
+			for (double r: finalRewards) {
+				pw.println(String.valueOf(r));
 			}
 			pw.close();
 		} catch (IOException e) {
