@@ -26,8 +26,8 @@ public class BoltzmannQPolicy extends Policy implements PlannerDerivedPolicy{
 
 	protected QComputablePlanner		qplanner;
 	double								temperature;
-	double								temp_decay_constant;
 	double								min_temp;
+	double								temp_decay_constant;
 	
 	/**
 	 * Initializes with a temperature value. The temperature value controls how greedy the Boltzmann distribution is.
@@ -42,8 +42,8 @@ public class BoltzmannQPolicy extends Policy implements PlannerDerivedPolicy{
 	public BoltzmannQPolicy(QComputablePlanner planner, double temperature, double min_temp, double temp_decay_constant){
 		this.qplanner = planner;
 		this.temperature = temperature;
-		this.temp_decay_constant = temp_decay_constant;
 		this.min_temp = min_temp;
+		this.temp_decay_constant = temp_decay_constant;
 	}
 	
 	/**

@@ -251,8 +251,8 @@ public class SmallGW {
 		//evaluateQwithShapingLearningPolicy();
 		//evaluateRmaxLearningPolicy();
 		//evaluateRmaxWithShapingLearningPolicy();
-		//evaluateARTDPLearningPolicy();
-		evaluateARTDPWithHeuristicLearningPolicy();
+		evaluateARTDPLearningPolicy();
+		//evaluateARTDPWithHeuristicLearningPolicy();
 	}
 	
 	public void visualizeEpisode(String outputPath){

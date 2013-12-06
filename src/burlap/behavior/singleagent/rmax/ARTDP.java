@@ -14,7 +14,7 @@ import burlap.oomdp.singleagent.RewardFunction;
 
 public class ARTDP extends Rmax {
 
-	protected double inital_temp;
+	protected double initial_temp;
 	protected double min_temp;
 	protected double temp_decay_constant;
 	
@@ -28,7 +28,7 @@ public class ARTDP extends Rmax {
 	}
 
 	public void set_temp_param(double initial_temp, double min_temp, double temp_decay_constant) {
-		this.inital_temp = initial_temp;
+		this.initial_temp = initial_temp;
 		this.min_temp = min_temp;
 		this.temp_decay_constant = temp_decay_constant;
 	}
