@@ -198,7 +198,7 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		}
 		System.out.println("Max Q: " + maxQ + "    " + "max R: " + maxR);
 		printRmaxDebugPos(maxRsht);
-		System.out.println("action " + maxRga);
+		System.out.println("\t action " + maxRga);
 		System.out.println("Last discounted return: " + 
 				getLastLearningEpisode().getDiscountedReturn(this.gamma));
 	}
