@@ -164,7 +164,7 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		for (StateHashTuple sht : qIndex.keySet()) {
 			printRmaxDebugPos(sht);
 			for (QValue qv : qIndex.get(sht).qEntry) {
-				System.out.printf("%s: %.2f\n", qv.a, qv.q);
+				System.out.printf("\t%s: %.2f", qv.a, qv.q);
 				maxQ = Math.max(maxQ, qv.q);
 			}
 			System.out.println();
@@ -177,7 +177,7 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		for (StateHashTuple sht : pastExperience.keySet()) {
 			printRmaxDebugPos(sht);
 			for (GroundedAction ga : pastExperience.get(sht).getEstRewards().keySet()) {
-				System.out.printf("%s: %.2f\n", ga,pastExperience.get(sht).getEstRewards().get(ga));
+				System.out.printf("\t%s: %.2f", ga,pastExperience.get(sht).getEstRewards().get(ga));
 				//maxR = Math.max(maxR, pastExperience.get(sht).getEstRewards().get(ga));
 				if (maxR < pastExperience.get(sht).getEstRewards().get(ga)) {
 					maxR = pastExperience.get(sht).getEstRewards().get(ga);
@@ -198,7 +198,8 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		ObjectInstance agent = sht.s.getObjectsOfTrueClass(GridWorldDomain.CLASSAGENT).get(0);
 		int x = agent.getDiscValForAttribute(GridWorldDomain.ATTX);
 		int y = agent.getDiscValForAttribute(GridWorldDomain.ATTY);
-		System.out.println("x = " + x + ", y = " + y + ":  ");
+		//System.out.println("x = " + x + ", y = " + y + ":  ");
+		System.out.printf("x = %d, y = %d", x, y);
 	}
 	
 	@Override
