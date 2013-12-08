@@ -634,7 +634,7 @@ public class VeryLargeGW {
 	public static void main(String[] args) {
 //		VeryLargeGW myWorld = new VeryLargeGW();	
 //		myWorld.visualExplorer();
-		int numExperiments = 1;
+		int numExperiments = 30;
 		for (int ii = 1; ii <= numExperiments; ii++) {
 			System.out.println("Run " + ii + " of " + numExperiments);
 			VeryLargeGW myWorld = new VeryLargeGW();

@@ -9,6 +9,7 @@ import burlap.behavior.singleagent.shaping.potential.GridWorldPotential;
 import burlap.behavior.statehashing.StateHashFactory;
 import burlap.behavior.statehashing.StateHashTuple;
 import burlap.oomdp.core.Domain;
+import burlap.oomdp.core.State;
 import burlap.oomdp.core.TerminalFunction;
 import burlap.oomdp.singleagent.GroundedAction;
 import burlap.oomdp.singleagent.RewardFunction;
@@ -16,7 +17,7 @@ import burlap.oomdp.singleagent.RewardFunction;
 public class RmaxWithShaping extends Rmax {
 
 	protected GridWorldPotential gwp;
-	
+
 	public void setGridWorldPotential(GridWorldPotential gwp) {
 		this.gwp = gwp;
 	}
@@ -42,7 +43,8 @@ public class RmaxWithShaping extends Rmax {
 			
 			node = new QLearningStateNode(s);
 			for (GroundedAction ga : gas) {
-				node.addQValue(ga, gwp.potentialValue(s.s));
+				//node.addQValue(ga, gwp.potentialValue(s.s));
+				node.addQValue(ga, qInitFunction.qValue(s.s, ga) - gwp.potentialValue(initialState));
 			}
 			qIndex.put(s, node);
 		}

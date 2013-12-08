@@ -87,6 +87,8 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 	 */
 	protected LinkedList<Double> 									finalRewards;
 	
+	protected State													initialState;
+	
 	/**
 	 * Initialize Rmax()
 	 * @param domain the domain in which to learn
@@ -159,6 +161,7 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 	// abstract class OOMDPPlanner requires the following to be implemented:
 	@Override
 	public void planFromState(State initialState) {
+		this.initialState = initialState;
 		int eCount = 0;
 		do {
 			this.runLearningEpisodeFrom(initialState);
