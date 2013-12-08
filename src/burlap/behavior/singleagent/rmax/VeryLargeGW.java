@@ -419,13 +419,13 @@ public class VeryLargeGW {
 			for (int p = 0; p < goalPos.length  &&  !foundGoal; p++) {
 				if (goalPos[p].equals(aPos)) {
 					foundGoal = true;
-					r += goalReward;
+					r = goalReward;
 				}
 			}
 			for (int p = 0; p < pitPos.length  &&  !foundGoal; p++) {
 				if (pitPos[p].equals(aPos)) {
 					foundGoal = true;
-					r += pitReward;
+					r = pitReward;
 				}
 			}
 			
