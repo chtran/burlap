@@ -224,7 +224,7 @@ public class SmallGW {
 	
 	public void visualExplorer(){
 		Visualizer v = GridWorldVisualizer.getVisualizer(domain, gwd.getMap(),
-				this.pitPos, gwd.getNorthWalls(), gwd.getEastWalls());
+				this.goalPos[0], this.pitPos, gwd.getNorthWalls(), gwd.getEastWalls());
 		
 		State s = GridWorldDomain.getOneAgentNLocationState(domain, 0);
 		GridWorldDomain.setAgent(s, initialAgentPos.x, initialAgentPos.y);

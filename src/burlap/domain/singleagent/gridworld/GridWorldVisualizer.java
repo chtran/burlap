@@ -147,6 +147,22 @@ public class GridWorldVisualizer {
 				}
 			}
 			
+			// Draw pits
+			g2.setColor(Color.gray);
+			for (Position pos : this.pitPos) {
+				float rx = pos.x*width;
+				float ry = cHeight - height - pos.y*height;
+				g2.fill(new Rectangle2D.Float(rx, ry, width, height));
+			}
+			
+			// Draw goal
+			g2.setColor(Color.orange);
+			if (this.goalPos != null) {
+				float rx = goalPos.x*width;
+				float ry = cHeight - height - goalPos.y*height;
+				g2.fill(new Rectangle2D.Float(rx, ry, width, height));
+			}
+			
 			// Draw directional walls.
 			// They will be 1/4 the size of a grid and positioned inbetween the
 			// grids that they are preventing access to
@@ -165,21 +181,6 @@ public class GridWorldVisualizer {
 					}
 				}	
 			}
-			
-			// Draw pits
-			g2.setColor(Color.gray);
-			for (Position pos : this.pitPos) {
-				float rx = pos.x*width;
-				float ry = cHeight - height - pos.y*height;
-				g2.fill(new Rectangle2D.Float(rx, ry, width, height));
-			}
-			
-			// Draw goal
-			g2.setColor(Color.orange);
-			if (this.goalPos != null) {
-				float rx = goalPos.x*width;
-				float ry = cHeight - height - goalPos.y*height;
-				g2.fill(new Rectangle2D.Float(rx, ry, width, height));			}
 		}
 		
 		

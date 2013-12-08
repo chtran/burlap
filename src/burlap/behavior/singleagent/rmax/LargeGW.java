@@ -341,7 +341,7 @@ public class LargeGW {
 	
 	public void visualExplorer(){
 		Visualizer v = GridWorldVisualizer.getVisualizer(domain, gwd.getMap(),
-				this.pitPos, gwd.getNorthWalls(), gwd.getEastWalls());
+				this.goalPos[0], this.pitPos, gwd.getNorthWalls(), gwd.getEastWalls());
 		
 		State s = GridWorldDomain.getOneAgentNLocationState(domain, 0);
 		GridWorldDomain.setAgent(s, initialAgentPos.x, initialAgentPos.y);
@@ -538,8 +538,8 @@ public class LargeGW {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		//LargeGW myWorld = new LargeGW();	
-		//myWorld.visualExplorer();
+//		LargeGW myWorld = new LargeGW();	
+//		myWorld.visualExplorer();
 		int numExperiments = 40;
 		for (int ii = 1; ii <= numExperiments; ii++) {
 			System.out.println("Run " + ii + " of " + numExperiments);
