@@ -40,6 +40,19 @@ public class GridWorldVisualizer {
 		return v;
 	}
 	
+	public static Visualizer getVisualizer(Domain d, int [][] map, 
+			Position goalPos, Position [] pitPos,
+		    boolean [][] northWalls, boolean [][] eastWalls){
+
+		Visualizer v = new Visualizer();
+		
+		v.addStaticPainter(new MapPainter(d, map, goalPos, pitPos, northWalls, eastWalls));
+		v.addObjectClassPainter(GridWorldDomain.CLASSLOCATION, new CellPainter(Color.blue, map));
+		v.addObjectClassPainter(GridWorldDomain.CLASSAGENT, new CellPainter(Color.red, map));
+		
+		return v;
+	}
+	
 	public static Visualizer getVisualizer(Domain d, int [][] map,
 		       boolean [][] northWalls, boolean [][] eastWalls){
 		
@@ -63,6 +76,7 @@ public class GridWorldVisualizer {
 		protected int 				dwidth;
 		protected int 				dheight;
 		protected int [][] 			map;
+		protected Position			goalPos = null;
 		protected Position []		pitPos;
 		protected boolean [][]		northWalls;
 		protected boolean [][]		eastWalls;
@@ -72,6 +86,18 @@ public class GridWorldVisualizer {
 		 * @param domain the domain of the grid world
 		 * @param map the wall map matrix where 1s indicate a wall in that cell and 0s indicate it is clear of walls
 		 */
+		public MapPainter(Domain domain, int [][] map,
+				  Position goalPos, Position [] pitPos,
+		          boolean [][] northWalls, boolean [][] eastWalls) {
+			this.dwidth = map.length;
+			this.dheight = map[0].length;
+			this.map = map;
+			this.goalPos = goalPos;
+			this.pitPos = pitPos;
+			this.northWalls = northWalls;
+			this.eastWalls = eastWalls;
+		}		
+				
 		public MapPainter(Domain domain, int [][] map, Position [] pitPos,
 				          boolean [][] northWalls, boolean [][] eastWalls) {
 			this.dwidth = map.length;
@@ -148,6 +174,12 @@ public class GridWorldVisualizer {
 				g2.fill(new Rectangle2D.Float(rx, ry, width, height));
 			}
 			
+			// Draw goal
+			g2.setColor(Color.orange);
+			if (this.goalPos != null) {
+				float rx = goalPos.x*width;
+				float ry = cHeight - height - goalPos.y*height;
+				g2.fill(new Rectangle2D.Float(rx, ry, width, height));			}
 		}
 		
 		
