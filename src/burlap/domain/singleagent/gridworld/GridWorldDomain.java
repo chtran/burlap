@@ -612,15 +612,15 @@ public class GridWorldDomain implements DomainGenerator {
 	// L1 distance
 	// This does not take into account walls, pits, etc which may be in the way
 	public double taxicabDistance(Position from, Position to) {
-		return Math.abs(from.x - to.x)
-			 + Math.abs(from.y - to.y);
+		return (double)(Math.abs(from.x - to.x)
+		              + Math.abs(from.y - to.y));
 	}
 	
 	// L2 distance
 	// Euclidean distance between two points
 	public double straightLineDistance(Position from, Position to) {
-		return Math.sqrt((from.x - to.x)*(from.x - to.x)
-				      +  (from.y - to.y)*(from.y - to.y));
+		return Math.sqrt((double)((from.x - to.x)*(from.x - to.x)
+				               +  (from.y - to.y)*(from.y - to.y)));
 	}
 	
 	// Shortest path between any two points, taking into account walls
