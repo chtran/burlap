@@ -604,8 +604,14 @@ public class GridWorldDomain implements DomainGenerator {
 	}
 	
 	public double getDistance(Position from, Position to) {
+		return straightLineDistance(from, to);
 		//return distance[from.x*height + from.y][to.x*height + to.y];
-		return Math.abs(from.x-to.x)+Math.abs(from.y-to.y);
+		//return Math.abs(from.x-to.x)+Math.abs(from.y-to.y);
+	}
+	
+	public double straightLineDistance(Position from, Position to) {
+		return Math.sqrt((from.x - to.x)*(from.x - to.x)
+				      +  (from.y - to.y)*(from.y - to.y));
 	}
 	
 	private double[] getDistanceMatrix(int from_x, int from_y) {

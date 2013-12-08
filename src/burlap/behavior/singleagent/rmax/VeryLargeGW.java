@@ -461,8 +461,8 @@ public class VeryLargeGW {
 		//evaluateGoNorthPolicy();
 		//evaluateQLearningPolicy();
 		//evaluateQwithShapingLearningPolicy();
-		evaluateRmaxLearningPolicy();
-		//evaluateRmaxWithShapingLearningPolicy();
+		//evaluateRmaxLearningPolicy();
+		evaluateRmaxWithShapingLearningPolicy();
 		//evaluateARTDPLearningPolicy();
 		//evaluateARTDPWithHeuristicLearningPolicy();
 	}
