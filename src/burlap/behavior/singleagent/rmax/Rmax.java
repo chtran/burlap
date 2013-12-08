@@ -355,7 +355,7 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		return ea;
 	}
 
-	private void runVI() {
+	protected void runVI() {
 		RmaxMemoryNode					node;
 		Map<StateHashTuple, Double>		transitionDist;
 		double sum_t_q;
