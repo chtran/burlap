@@ -101,13 +101,5 @@ public class ARTDP extends Rmax {
 		
 		return ea;
 	}
-	
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
-	}
-	
 }

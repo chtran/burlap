@@ -7,16 +7,18 @@ import java.util.Set;
 
 import burlap.behavior.statehashing.StateHashTuple;
 import burlap.oomdp.singleagent.GroundedAction;
-
+/**
+ * Storing the experiences gained as the agent acts in an environment and its model of the environment
+ */
 public class RmaxMemoryNode {
 	
-	private Map<GroundedAction, Double>							pastRewards;
-	private Map<GroundedAction, Map<StateHashTuple,Integer>>	pastSAS;
-	private Map<GroundedAction, Integer>						pastSA;
-	private HashSet<GroundedAction>								updatedActions;
-	private Map<GroundedAction, Map<StateHashTuple, Double>>	estTransition;
-	private Map<GroundedAction, Double>							estRewards;
-	private int													m;
+	private Map<GroundedAction, Double>							pastRewards; //Total rewards gained from doing an action
+	private Map<GroundedAction, Map<StateHashTuple,Integer>>	pastSAS; //Total number of times ending up in a result state after taking an action
+	private Map<GroundedAction, Integer>						pastSA; //Total number of times taking an action
+	private HashSet<GroundedAction>								updatedActions; //Set of actions that we already estimated the transition probability and reward function
+	private Map<GroundedAction, Map<StateHashTuple, Double>>	estTransition; //The estimated transition probability distribution
+	private Map<GroundedAction, Double>							estRewards; //The estimated reward function
+	private int													m; //Number of times to experience an action before estimating the reward function and the transition probability
 
 	public RmaxMemoryNode(int m) {
 		this.pastRewards = new HashMap<GroundedAction, Double>();
@@ -44,7 +46,12 @@ public class RmaxMemoryNode {
 		//return true;
 		return !this.updatedActions.contains(ga);
 	}
-	
+	/**
+	 * Adding experience tuple (S,A,S',R)
+	 * @param action
+	 * @param resultState
+	 * @param reward
+	 */
 	public void addExperience(GroundedAction action, StateHashTuple resultState, double reward) {
 		//Update rewards
 		double r;
@@ -80,7 +87,11 @@ public class RmaxMemoryNode {
 		nSASMap.put(resultState, nSAS+1);
 		this.pastSAS.put(action, nSASMap);
 	}
-	
+	/**
+	 * Check if we have enough experience on this action
+	 * @param action
+	 * @return
+	 */
 	public boolean hasEnoughExperience(GroundedAction action) {
 		if (!this.pastSA.containsKey(action)) {
 			return false;
@@ -88,7 +99,10 @@ public class RmaxMemoryNode {
 			return (this.pastSA.get(action) >= m);
 		}
 	}
-	
+	/**
+	 * Update the estimated transition probability and reward function
+	 * @param action
+	 */
 	public void updateEstimations(GroundedAction action) {
 		
 		this.updatedActions.add(action);
@@ -109,7 +123,10 @@ public class RmaxMemoryNode {
 		}
 		this.estTransition.put(action, transitionMap);
 	}
-	
+	/**
+	 * For Rmax, stop updating the estimated transition probabilty and reward function after the first time
+	 * @param action
+	 */
 	public void updateRMaxEstimations(GroundedAction action) {
 		if (this.updatedActions.contains(action)) return;
 		updateEstimations(action);

@@ -591,7 +591,9 @@ public class GridWorldDomain implements DomainGenerator {
 		
 		return result;
 	}
-	
+	/**
+	 * Populate the distance matrix
+	 */
 	public void populateDistance() {
 		int num_states = this.width * this.height;
 		this.distance = new double[num_states][num_states];
@@ -602,7 +604,13 @@ public class GridWorldDomain implements DomainGenerator {
 		}
 		
 	}
-	
+	/**
+	 * Get distance between 2 positions in the gridworld.
+	 * Can be used as a heuristic or in shaping function
+	 * @param from
+	 * @param to
+	 * @return
+	 */
 	public double getDistance(Position from, Position to) {
 		//return distance[from.x*height + from.y][to.x*height + to.y];
 		//return taxicabDistance(from, to);
@@ -649,7 +657,14 @@ public class GridWorldDomain implements DomainGenerator {
 		}
 		return toReturn;
 	}
-
+	
+	/**
+	 * Get the destination of taking an action from a position (assuming deterministic)
+	 * Used in BFS to populate the distance matrix
+	 * @param from
+	 * @param action
+	 * @return
+	 */
 	private Position getDest(Position from, String action) {
 		int from_x = from.x;
 		int from_y = from.y;

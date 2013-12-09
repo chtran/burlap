@@ -51,11 +51,5 @@ public class RmaxWithShaping extends Rmax {
 		
 		return node;
 	}
-	
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-	}
 
 }

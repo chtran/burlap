@@ -335,10 +335,11 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 				pastExperience.put(curState, new RmaxMemoryNode(m));
 			}			
 			RmaxMemoryNode memoryNode = pastExperience.get(curState);
+			//If memoryNode didn't have enough experience, add experience
 			if (!memoryNode.hasEnoughExperience(action)) {
 				memoryNode.addExperience(action,nextState,r);
 			}
-			
+			//If memory node already have enough experience, run VI
 			if (memoryNode.hasEnoughExperience(action) && memoryNode.runVI(action)) {
 				memoryNode.updateRMaxEstimations(action);
 				runVI();
@@ -357,7 +358,9 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		
 		return ea;
 	}
-
+	/**
+	 * Run Value Iteration after gaining enough experience on a state-action pair
+	 */
 	protected void runVI() {
 		RmaxMemoryNode					node;
 		Map<StateHashTuple, Double>		transitionDist;
@@ -387,11 +390,4 @@ public class Rmax extends OOMDPPlanner implements QComputablePlanner, LearningAg
 		} while (absDelQ > qEps);
 	}
 	
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
 }
